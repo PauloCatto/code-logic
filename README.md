@@ -1,59 +1,106 @@
-# KidsLogicGame
+<h1>🧠 Kids Logic Game</h1>
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.3.
+<p>
+  Um aplicativo educacional focado em <strong>estimular o raciocínio lógico de crianças</strong>
+  por meio de jogos simples, visuais e interativos.
+</p>
 
-## Development server
+<p>
+  A proposta é <strong>aprender brincando</strong> — sem excesso de texto,
+  sem complexidade desnecessária e com feedback visual claro.
+</p>
 
-To start a local development server, run:
+<hr />
 
-```bash
-ng serve
-```
+<h2>🎯 Objetivo do projeto</h2>
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+<p>O <strong>Kids Logic Game</strong> nasce com três objetivos principais:</p>
 
-## Code scaffolding
+<ul>
+  <li>Desenvolver o <strong>pensamento lógico</strong> e a capacidade de resolver problemas</li>
+  <li>Criar uma experiência <strong>amigável, colorida e intuitiva</strong> para crianças</li>
+  <li>Servir como um projeto prático de <strong>evolução técnica em frontend moderno</strong></li>
+</ul>
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+<p>
+  Este projeto também funciona como um <strong>laboratório de boas práticas</strong>
+  em Angular, organização de código e UI, além de integração com serviços backend modernos.
+</p>
 
-```bash
-ng generate component component-name
-```
+<hr />
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+<h2>🧩 O que o app oferece (fase inicial)</h2>
 
-```bash
-ng generate --help
-```
+<ul>
+  <li>Tela inicial amigável para crianças</li>
+  <li>Jogos simples de lógica <em>(em evolução)</em></li>
+  <li>Interface pensada para dispositivos <strong>desktop e mobile</strong></li>
+  <li>Estilo visual <strong>limpo, acessível e divertido</strong></li>
+</ul>
 
-## Building
+<p>
+  Novas fases, jogos e melhorias visuais serão adicionados progressivamente.
+</p>
 
-To build the project run:
+<hr />
 
-```bash
-ng build
-```
+<h2>🧠 Arquitetura e conceito</h2>
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+<p>
+  O frontend não é apenas uma camada visual.
+  Ele contém a <strong>engine de execução da lógica do jogo</strong>,
+  responsável por interpretar ações, executar comandos e controlar o estado do jogo.
+</p>
 
-## Running unit tests
+<p>
+  A persistência de dados e autenticação são planejadas utilizando
+  <strong>Supabase</strong>, permitindo:
+</p>
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+<ul>
+  <li>Autenticação do responsável (login social)</li>
+  <li>Criação e gerenciamento de perfis de crianças</li>
+  <li>Salvamento de progresso, fases concluídas e conquistas</li>
+  <li>Base escalável para evolução futura do app</li>
+</ul>
 
-```bash
-ng test
-```
+<p>
+  O Supabase atua como backend-as-a-service, reduzindo complexidade
+  e permitindo foco total na experiência do usuário.
+</p>
 
-## Running end-to-end tests
+<hr />
 
-For end-to-end (e2e) testing, run:
+<h2>🛠️ Tecnologias utilizadas</h2>
 
-```bash
-ng e2e
-```
+<ul>
+  <li>Angular (standalone)</li>
+  <li>TypeScript</li>
+  <li>Tailwind CSS</li>
+  <li>HTML semântico</li>
+  <li>PostCSS</li>
+  <li>Supabase</li>
+</ul>
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+<p>
+  O projeto segue uma estrutura organizada por <strong>features</strong>,
+  facilitando manutenção, testes e evolução contínua.
+</p>
 
-## Additional Resources
+<hr />
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+<h2>🚧 Status do projeto</h2>
+
+<p>
+  🟡 <strong>Em desenvolvimento</strong>
+</p>
+
+<p>
+  O projeto está em fase inicial, com foco na <strong>estrutura</strong>,
+  <strong>primeira tela</strong> e <strong>base visual</strong>.
+</p>
+
+<p>
+  Funcionalidades como autenticação, persistência de progresso
+  e novos jogos serão incrementadas de forma contínua.
+</p>
