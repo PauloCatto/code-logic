@@ -1,1 +1,163 @@
-<p>level works!</p>
+<main class="h-screen w-full bg-emerald-900 flex flex-col overflow-hidden font-sans">
+  <header
+    class="p-4 flex justify-between items-center bg-emerald-800 border-b-8 border-emerald-950 z-30"
+  >
+    <button
+      routerLink="/map"
+      [disabled]="isRunning()"
+      class="bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold px-6 py-2 rounded-full border-b-4 border-amber-700 active:border-b-0 transition-all disabled:opacity-50 disabled:grayscale"
+    >
+      ⬅ MAPA
+    </button>
+
+    <div class="text-center">
+      <h2 class="text-white font-black text-xl md:text-2xl uppercase tracking-widest leading-none">
+        Nível {{ id() }}
+      </h2>
+      <p class="text-emerald-300 text-[10px] md:text-xs font-bold mt-1 uppercase tracking-tighter">
+        Guie o robô pelo caminho de terra!
+      </p>
+    </div>
+
+    <div
+      class="hidden md:flex bg-emerald-950/50 px-4 py-2 rounded-full border-2 border-emerald-700 items-center gap-2"
+    >
+      <span class="text-yellow-400 text-xl">⭐</span>
+      <span class="text-white font-black">0/1</span>
+    </div>
+    <div class="md:hidden w-12"></div>
+  </header>
+
+  <div
+    class="flex-grow flex flex-col md:flex-row p-4 md:p-6 gap-4 md:gap-6 overflow-hidden bg-[url('https://www.transparenttextures.com/patterns/grass.png')]"
+  >
+    <section
+      class="flex-[2] bg-sky-300 rounded-[40px] border-b-[16px] border-sky-500 relative shadow-2xl flex items-center justify-center p-4 md:p-8 overflow-hidden"
+    >
+      <div class="absolute top-10 left-10 text-6xl opacity-30 animate-pulse select-none">☁️</div>
+      <div class="absolute bottom-20 right-10 text-6xl opacity-20 select-none">☁️</div>
+
+      <div
+        class="grid grid-cols-5 gap-1 md:gap-2 bg-emerald-600/20 p-3 md:p-5 rounded-[32px] border-4 border-white/30 backdrop-blur-sm z-10"
+      >
+        @for (row of mapGrid(); track $index; let y = $index) { @for (cell of row; track $index; let
+        x = $index) {
+
+        <div
+          class="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-xl flex items-center justify-center text-3xl transition-all relative duration-300"
+          [ngClass]="{
+            'bg-[#e3c19d] shadow-inner': cell === 2,
+            'bg-emerald-500/80': cell === 0,
+            'bg-emerald-800 shadow-lg border-t-2 border-emerald-600': cell === 1,
+            'bg-yellow-100 border-4 border-dashed border-yellow-400': cell === 3
+          }"
+        >
+          @if (cell === 1) {
+          <span class="drop-shadow-md transform scale-110 md:scale-150">🌲</span>
+          } @if (cell === 3) {
+          <span class="animate-bounce drop-shadow-[0_0_10px_rgba(255,255,0,0.8)]">⭐</span>
+          } @if (robotPosition().x === x && robotPosition().y === y) {
+          <div
+            class="z-20 transition-all duration-500 transform scale-125 md:scale-150 drop-shadow-2xl filter saturate-150"
+          >
+            🤖
+          </div>
+          <div class="absolute inset-0 bg-yellow-400/20 rounded-xl animate-ping"></div>
+          }
+        </div>
+
+        } }
+      </div>
+    </section>
+
+    <aside class="flex-1 w-full max-w-sm mx-auto flex flex-col gap-4 z-20">
+      <div
+        class="bg-white/10 backdrop-blur-xl p-5 md:p-6 rounded-[35px] border-4 border-white/20 flex flex-col h-full shadow-2xl relative"
+      >
+        <h3
+          class="text-white font-black text-center mb-4 uppercase tracking-widest text-sm flex items-center justify-center gap-2"
+        >
+          <span>🎒</span> Sua Mochila
+        </h3>
+
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <button
+            (click)="addCommand('frente')"
+            [disabled]="isRunning()"
+            class="group bg-blue-500 hover:bg-blue-400 p-3 md:p-4 rounded-2xl border-b-8 border-blue-700 active:border-b-0 active:translate-y-2 transition-all disabled:opacity-50 disabled:grayscale"
+          >
+            <span class="block text-2xl group-active:scale-90">⬆️</span>
+            <span class="text-white font-black text-[10px] uppercase">Frente</span>
+          </button>
+
+          <button
+            (click)="addCommand('direita')"
+            [disabled]="isRunning()"
+            class="group bg-orange-500 hover:bg-orange-400 p-3 md:p-4 rounded-2xl border-b-8 border-orange-700 active:border-b-0 active:translate-y-2 transition-all disabled:opacity-50 disabled:grayscale"
+          >
+            <span class="block text-2xl group-active:scale-90">➡️</span>
+            <span class="text-white font-black text-[10px] uppercase">Direita</span>
+          </button>
+        </div>
+
+        <div
+          class="flex-grow bg-black/30 rounded-3xl p-4 overflow-y-auto mb-4 border-2 border-white/10 custom-scrollbar"
+        >
+          @for (cmd of commands(); track $index) {
+          <div
+            class="bg-white/90 mb-2 p-2 rounded-xl flex items-center justify-between group animate-in slide-in-from-right duration-300"
+          >
+            <div class="flex items-center gap-3">
+              <span
+                class="bg-slate-800 text-white w-5 h-5 rounded-full text-[9px] flex items-center justify-center font-black"
+                >{{ $index + 1 }}</span
+              >
+              <span class="font-black text-slate-800 uppercase text-[10px] tracking-tight"
+                >Mover {{ cmd }}</span
+              >
+            </div>
+            <span class="text-xs">{{ cmd === 'frente' ? '👣' : '🔄' }}</span>
+          </div>
+          } @empty {
+          <div class="h-full flex flex-col items-center justify-center text-center px-4">
+            <span class="text-4xl opacity-20 mb-2">🧩</span>
+            <p class="text-emerald-200/40 text-[11px] font-bold uppercase leading-tight">
+              Toque nos comandos para criar seu caminho!
+            </p>
+          </div>
+          }
+        </div>
+
+        <div class="flex gap-2 h-16">
+          <button
+            (click)="clear()"
+            [disabled]="isRunning() || commands().length === 0"
+            class="w-16 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl font-bold border-b-4 border-rose-800 active:border-b-0 flex items-center justify-center transition-all disabled:opacity-50"
+          >
+            🗑️
+          </button>
+
+          <button
+            (click)="runSequence()"
+            [disabled]="isRunning() || commands().length === 0"
+            class="flex-grow bg-yellow-400 hover:bg-yellow-300 text-yellow-950 font-black rounded-2xl border-b-8 border-yellow-600 active:border-b-0 transition-all text-lg shadow-lg flex items-center justify-center gap-3 disabled:grayscale disabled:opacity-50"
+          >
+            @if (isRunning()) {
+            <span class="animate-spin text-xl">⚙️</span>
+            <span>RODANDO...</span>
+            } @else {
+            <span>EXECUTAR!</span>
+            <span class="text-xl">🚀</span>
+            }
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="bg-emerald-950/80 py-1 px-4 text-center">
+    <p class="text-[9px] text-emerald-500 font-bold uppercase tracking-[0.2em]">
+      Code Adventure Engine v1.0 • Desenvolvido para Pequenos Exploradores
+    </p>
+  </footer>
+</main>
