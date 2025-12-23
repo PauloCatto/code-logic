@@ -1,1 +1,79 @@
-<p>avatar works!</p>
+<main
+  class="h-screen w-full bg-slate-100 flex items-center justify-center p-4 font-sans overflow-hidden bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:20px_20px]"
+>
+  <div
+    class="max-w-xl w-full bg-white rounded-[32px] shadow-2xl border border-slate-200 p-6 md:p-10 text-center relative flex flex-col max-h-[95vh]"
+  >
+    <header class="mb-6 shrink-0">
+      <h1 class="text-2xl md:text-3xl font-black text-slate-800 uppercase tracking-tight mb-1">
+        Crie seu Herói
+      </h1>
+      <p class="text-slate-500 font-medium text-sm">Personalize seu personagem para a aventura</p>
+    </header>
+
+    <div class="mb-8 shrink-0">
+      <label
+        class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 text-left ml-2"
+      >
+        Nome do seu Herói
+      </label>
+      <input
+        type="text"
+        [(ngModel)]="playerName"
+        placeholder="Ex: Super Robô, Bia..."
+        maxlength="12"
+        class="w-full h-14 bg-slate-50 border-2 border-slate-200 rounded-2xl px-6 font-bold text-slate-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-lg"
+      />
+    </div>
+
+    <div class="flex-grow overflow-y-auto pr-2 custom-scrollbar mb-6">
+      <label
+        class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 text-left ml-2"
+      >
+        Escolha o visual
+      </label>
+      <div class="grid grid-cols-3 gap-3">
+        @for (item of avatares; track item.id) {
+        <button
+          (click)="select(item)"
+          [ngClass]="
+            selectedId() === item.id
+              ? 'border-blue-500 bg-blue-50 ring-4 ring-blue-100'
+              : 'border-slate-100 bg-white hover:border-slate-300'
+          "
+          class="relative aspect-square rounded-2xl flex flex-col items-center justify-center transition-all duration-200 border-2 shadow-sm"
+        >
+          <span class="text-4xl md:text-5xl transition-transform group-active:scale-90">
+            {{ item.icon }}
+          </span>
+          @if (selectedId() === item.id) {
+          <div
+            class="absolute -top-2 -right-2 bg-blue-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs shadow-lg animate-in zoom-in"
+          >
+            ✓
+          </div>
+          }
+        </button>
+        }
+      </div>
+    </div>
+
+    <div class="shrink-0 flex flex-col gap-3">
+      <button
+        (click)="confirmSelection()"
+        [disabled]="!selectedId()"
+        class="w-full h-14 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
+      >
+        <span>COMEÇAR AVENTURA</span>
+        <span class="text-lg">🚀</span>
+      </button>
+
+      <button
+        routerLink="/welcome"
+        class="text-slate-400 hover:text-slate-600 font-bold uppercase text-[10px] tracking-widest transition-colors py-1"
+      >
+        Voltar
+      </button>
+    </div>
+  </div>
+</main>
