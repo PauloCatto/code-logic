@@ -1,11 +1,21 @@
-import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { LoadingService } from '../../core/services/loading';
 
 @Component({
   selector: 'app-welcome',
-  imports: [CommonModule, RouterModule],
+  standalone: true,
   templateUrl: './welcome.html',
-  styleUrl: './welcome.scss',
 })
-export class Welcome {}
+export class Welcome {
+  private router = inject(Router);
+  private loading = inject(LoadingService);
+
+  enterKidsMode(): void {
+    this.loading.start();
+
+    setTimeout(() => {
+      this.router.navigate(['/map']);
+    }, 900);
+  }
+}
