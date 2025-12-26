@@ -1,39 +1,49 @@
-import { Component, signal, input, inject, OnInit, WritableSignal, InputSignal } from '@angular/core';
+import {
+  Component,
+  signal,
+  input,
+  inject,
+  OnInit,
+  WritableSignal,
+  InputSignal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { FeedbackService } from '../../services/feedback';
-import { SupabaseService } from '../../services/supabase';
-import { SweetAlertResult } from 'sweetalert2';
-
-interface Position {
-  x: number;
-  y: number;
-}
+import { FeedbackService } from '../../core/services/feedback';
+import { SupabaseService } from '../../core/services/supabase';
+import { LoadingService } from '../../core/services/loading';
+import { ProfileService } from '../../core/services/profile';
+import { Position } from '../../models/level.model';
 
 @Component({
   selector: 'app-level',
   standalone: true,
   imports: [CommonModule, RouterModule],
-  templateUrl: './level.html'
+  templateUrl: './level.html',
 })
 export class Level implements OnInit {
   id: InputSignal<string | undefined> = input<string>();
-  
-  private feedbackService: FeedbackService = inject(FeedbackService);
-  private supabaseService: SupabaseService = inject(SupabaseService);
-  private router: Router = inject(Router);
 
-  commands: WritableSignal<string[]> = signal<string[]>([]);
-  robotPosition: WritableSignal<Position> = signal<Position>({ x: 0, y: 0 });
-  isRunning: WritableSignal<boolean> = signal<boolean>(false);
-  mapGrid: WritableSignal<number[][]> = signal<number[][]>([]);
+  private feedback = inject(FeedbackService);
+  private supabase = inject(SupabaseService);
+  private router = inject(Router);
+  private loading = inject(LoadingService);
+  public profileService = inject(ProfileService);
+
+  playerProfile = this.profileService.getProfile();
+  commands: WritableSignal<string[]> = signal([]);
+  robotPosition: WritableSignal<Position> = signal({ x: 0, y: 0 });
+  mapGrid: WritableSignal<number[][]> = signal([]);
+
+  isRunning = signal(false);
+  levelCompleted = signal(false);
 
   ngOnInit(): void {
+    this.loading.stop();
     this.loadLevel();
   }
 
-  async loadLevel(): Promise<void> {
-    await this.supabaseService.getLevelData(this.id() || '1');
+  loadLevel(): void {
     this.mapGrid.set([
       [2, 2, 1, 0, 0],
       [0, 2, 1, 0, 0],
@@ -43,66 +53,77 @@ export class Level implements OnInit {
     ]);
   }
 
-  addCommand(type: string): void {
-    if (!this.isRunning()) {
-      this.commands.update((prev: string[]) => [...prev, type]);
-    }
-  }
-
-  clear(): void {
-    if (!this.isRunning()) {
-      this.commands.set([]);
-    }
+  addCommand(cmd: 'frente' | 'direita'): void {
+    if (!this.isRunning() && !this.levelCompleted()) this.commands.update((list) => [...list, cmd]);
   }
 
   async runSequence(): Promise<void> {
     if (this.commands().length === 0) return;
+
     this.isRunning.set(true);
+    let currentPos = { ...this.robotPosition() };
+    const sequence = [...this.commands()];
 
-    for (const cmd of this.commands()) {
-      let nextPos: Position = { ...this.robotPosition() };
-      if (cmd === 'frente') nextPos.y++;
-      if (cmd === 'direita') nextPos.x++;
+    for (const cmd of sequence) {
+      const next: Position = { ...currentPos };
 
-      if (this.isValidMove(nextPos)) {
-        this.robotPosition.set(nextPos);
-        await new Promise<void>(r => setTimeout(r, 600));
+      if (cmd === 'frente') {
+        next.y += 1;
+      } else if (cmd === 'direita') {
+        next.x += 1;
+      }
 
-        if (this.isVictory(nextPos)) {
-          await this.supabaseService.saveLevelProgress('USER_TEMP', this.id() || '1');
-          const result: SweetAlertResult = await this.feedbackService.showSuccess(this.id() || '1');
-          
-          if (result.isConfirmed) {
-            const nextLevel: number = Number(this.id()) + 1;
-            this.router.navigate(['/level', nextLevel]);
-          } else {
-            this.resetLevel();
-          }
-          this.isRunning.set(false);
-          return;
-        }
-      } else {
-        await this.feedbackService.showError();
-        this.resetLevel();
+      if (!this.isValidMove(next)) {
+        await this.feedback.showError();
+        this.fullReset();
+        return;
+      }
+
+      currentPos = next;
+      this.robotPosition.set({ ...next });
+      await this.delay(600);
+
+      if (this.isVictory(next)) {
+        const levelNum = Number(this.id() || 1);
+        this.profileService.completeLevel(levelNum);
+
+        this.levelCompleted.set(true);
+        this.isRunning.set(false);
+        this.commands.set([]);
         return;
       }
     }
+
     this.commands.set([]);
     this.isRunning.set(false);
   }
 
   isValidMove(pos: Position): boolean {
-    const grid: number[][] = this.mapGrid();
-    return grid[pos.y]?.[pos.x] === 2 || grid[pos.y]?.[pos.x] === 3;
+    const grid = this.mapGrid();
+    if (pos.y < 0 || pos.y >= grid.length || pos.x < 0 || pos.x >= grid[0].length) return false;
+    const cell = grid[pos.y][pos.x];
+    return cell === 2 || cell === 3;
   }
 
   isVictory(pos: Position): boolean {
     return this.mapGrid()[pos.y]?.[pos.x] === 3;
   }
 
-  resetLevel(): void {
+  fullReset(): void {
     this.robotPosition.set({ x: 0, y: 0 });
     this.commands.set([]);
     this.isRunning.set(false);
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  async goToAvatarSelection(): Promise<void> {
+    this.levelCompleted.set(false);
+    this.loading.start();
+    setTimeout(() => {
+      this.router.navigate(['/avatar']);
+    }, 900);
   }
 }

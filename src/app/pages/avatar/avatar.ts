@@ -1,66 +1,60 @@
-import { Component, inject, signal, WritableSignal } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms'; // Necessário para o [(ngModel)]
-import { ProfileService } from '../../services/profile';
-
-interface AvatarOption {
-  id: number;
-  icon: string;
-  label: string;
-  color: string;
-}
+import { Router } from '@angular/router';
+import { ProfileService } from '../../core/services/profile';
+import { LoadingService } from '../../core/services/loading';
+import { AvatarOption } from '../../models/avatar-state.model';
 
 @Component({
   selector: 'app-avatar',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
-  templateUrl: './avatar.html'
+  imports: [CommonModule],
+  templateUrl: './avatar.html',
 })
-export class Avatar {
-  private profileService: ProfileService = inject(ProfileService);
-  private router: Router = inject(Router);
+export class Avatar implements OnInit {
+  private router = inject(Router);
+  private profile = inject(ProfileService);
+  private loading = inject(LoadingService);
 
-  // Lista de Avatares
-  public avatares: AvatarOption[] = [
-    { id: 1, icon: '🤖', label: 'Robô-X', color: 'bg-blue-500' },
-    { id: 2, icon: '🐱‍🚀', label: 'Gato-Astro', color: 'bg-purple-500' },
-    { id: 3, icon: '🦖', label: 'Dino-Bot', color: 'bg-emerald-500' },
-    { id: 4, icon: '🦄', label: 'Uni-Power', color: 'bg-pink-500' },
-    { id: 5, icon: '🦊', label: 'Raposa-Z', color: 'bg-orange-500' },
-    { id: 6, icon: '🐒', label: 'Kong-Code', color: 'bg-amber-500' }
+  avatares: AvatarOption[] = [
+    { id: 1, icon: '🤖' },
+    { id: 2, icon: '🐱‍🚀' },
+    { id: 3, icon: '🦖' },
+    { id: 4, icon: '🦄' },
+    { id: 5, icon: '🦊' },
+    { id: 6, icon: '🐒' },
   ];
 
-  // Signals para gerenciar o estado local antes de salvar no Service
-  public selectedId: WritableSignal<number | null> = signal<number | null>(null);
-  public playerName: WritableSignal<string> = signal<string>('');
+  selectedId = signal<number | null>(null);
+  playerName = signal<string>('');
 
-  /**
-   * Seleciona visualmente o avatar no grid
-   */
-  public select(option: AvatarOption): void {
+  selectedAvatar = computed(() => this.avatares.find((a) => a.id === this.selectedId()) || null);
+
+  ngOnInit(): void {
+    this.loading.stop();
+  }
+
+  select(option: AvatarOption): void {
     this.selectedId.set(option.id);
   }
 
-  /**
-   * Salva os dados no ProfileService e navega para o mapa
-   */
-  public confirmSelection(): void {
-    const selected = this.avatares.find(a => a.id === this.selectedId());
-    
-    if (selected) {
-      // Usamos o método setProfile que criamos para salvar tudo de uma vez
-      const name = this.playerName().trim() || 'Explorador';
-      
-      // Chamada ao Service (Certifique-se que o método setProfile existe lá)
-      this.profileService.setAvatar(selected.icon);
-      
-      // Se o seu service tiver o sinal playerName, atualizamos ele aqui também
-      if (this.profileService.playerName) {
-        this.profileService.playerName.set(name);
-      }
+  updateName(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.playerName.set(value);
+  }
 
+  confirmSelection(): void {
+    if (!this.selectedAvatar()) return;
+
+    this.profile.setProfile({
+      name: this.playerName().trim() || 'Explorador',
+      avatar: this.selectedAvatar()!.icon,
+    });
+
+    this.loading.start();
+
+    setTimeout(() => {
       this.router.navigate(['/map']);
-    }
+    }, 900);
   }
 }

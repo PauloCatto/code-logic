@@ -1,163 +1,136 @@
 <main class="h-screen w-full bg-emerald-900 flex flex-col overflow-hidden font-sans">
-  <header
-    class="p-4 flex justify-between items-center bg-emerald-800 border-b-8 border-emerald-950 z-30"
-  >
-    <button
-      routerLink="/map"
+  
+  <header class="p-4 flex justify-between items-center bg-emerald-800 border-b-8 border-emerald-950 z-30">
+    <div class="flex items-center gap-3">
+      <button
+        routerLink="/map"
+        [disabled]="isRunning()"
+        class="bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold px-4 py-2 rounded-xl border-b-4 border-amber-700 active:border-b-0 transition-all"
+      >
+        ⬅ MAPA
+      </button>
+      
+      <div class="flex items-center gap-2 bg-black/30 px-4 py-2 rounded-2xl border border-white/10 shadow-inner">
+        <span class="text-2xl animate-pulse">{{ playerProfile.avatar }}</span>
+        <div class="flex flex-col">
+          <span class="text-[10px] text-emerald-400 font-black leading-none uppercase tracking-tighter">Herói</span>
+          <span class="text-white font-black text-sm uppercase">{{ playerProfile.name }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hidden md:block text-center">
+      <h2 class="text-white font-black text-xl uppercase tracking-widest">Nível {{ id() }}</h2>
+    </div>
+
+    <button 
+      (click)="fullReset()" 
       [disabled]="isRunning()"
-      class="bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold px-6 py-2 rounded-full border-b-4 border-amber-700 active:border-b-0 transition-all disabled:opacity-50 disabled:grayscale"
+      class="bg-red-500 hover:bg-red-400 text-white px-4 py-2 rounded-xl font-bold text-xs border-b-4 border-red-800 active:border-b-0 transition-all uppercase"
     >
-      ⬅ MAPA
+      Recomeçar
     </button>
-
-    <div class="text-center">
-      <h2 class="text-white font-black text-xl md:text-2xl uppercase tracking-widest leading-none">
-        Nível {{ id() }}
-      </h2>
-      <p class="text-emerald-300 text-[10px] md:text-xs font-bold mt-1 uppercase tracking-tighter">
-        Guie o robô pelo caminho de terra!
-      </p>
-    </div>
-
-    <div
-      class="hidden md:flex bg-emerald-950/50 px-4 py-2 rounded-full border-2 border-emerald-700 items-center gap-2"
-    >
-      <span class="text-yellow-400 text-xl">⭐</span>
-      <span class="text-white font-black">0/1</span>
-    </div>
-    <div class="md:hidden w-12"></div>
   </header>
 
-  <div
-    class="flex-grow flex flex-col md:flex-row p-4 md:p-6 gap-4 md:gap-6 overflow-hidden bg-[url('https://www.transparenttextures.com/patterns/grass.png')]"
-  >
-    <section
-      class="flex-[2] bg-sky-300 rounded-[40px] border-b-[16px] border-sky-500 relative shadow-2xl flex items-center justify-center p-4 md:p-8 overflow-hidden"
-    >
-      <div class="absolute top-10 left-10 text-6xl opacity-30 animate-pulse select-none">☁️</div>
-      <div class="absolute bottom-20 right-10 text-6xl opacity-20 select-none">☁️</div>
-
-      <div
-        class="grid grid-cols-5 gap-1 md:gap-2 bg-emerald-600/20 p-3 md:p-5 rounded-[32px] border-4 border-white/30 backdrop-blur-sm z-10"
-      >
-        @for (row of mapGrid(); track $index; let y = $index) { @for (cell of row; track $index; let
-        x = $index) {
-
-        <div
-          class="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-xl flex items-center justify-center text-3xl transition-all relative duration-300"
-          [ngClass]="{
-            'bg-[#e3c19d] shadow-inner': cell === 2,
-            'bg-emerald-500/80': cell === 0,
-            'bg-emerald-800 shadow-lg border-t-2 border-emerald-600': cell === 1,
-            'bg-yellow-100 border-4 border-dashed border-yellow-400': cell === 3
-          }"
-        >
-          @if (cell === 1) {
-          <span class="drop-shadow-md transform scale-110 md:scale-150">🌲</span>
-          } @if (cell === 3) {
-          <span class="animate-bounce drop-shadow-[0_0_10px_rgba(255,255,0,0.8)]">⭐</span>
-          } @if (robotPosition().x === x && robotPosition().y === y) {
-          <div
-            class="z-20 transition-all duration-500 transform scale-125 md:scale-150 drop-shadow-2xl filter saturate-150"
-          >
-            🤖
-          </div>
-          <div class="absolute inset-0 bg-yellow-400/20 rounded-xl animate-ping"></div>
+  <div class="flex-grow flex flex-col md:flex-row p-4 md:p-6 gap-6 overflow-hidden">
+    
+    <section class="flex-[2] bg-sky-300 rounded-[40px] border-b-[16px] border-sky-500 relative flex items-center justify-center p-4 shadow-inner">
+      <div class="grid grid-cols-5 gap-2 bg-emerald-600/20 p-5 rounded-[32px] border-4 border-white/30 backdrop-blur-sm z-10">
+        
+        @for (row of mapGrid(); track y; let y = $index) {
+          @for (cell of row; track x; let x = $index) {
+            <div
+              class="w-12 h-12 md:w-16 md:h-16 rounded-xl flex items-center justify-center text-3xl transition-all duration-500 relative shadow-sm"
+              [ngClass]="{
+                'bg-[#e3c19d] border-b-4 border-[#c5a17a]': cell === 2,
+                'bg-emerald-800': cell === 1,
+                'bg-yellow-100 border-4 border-dashed border-yellow-400 animate-pulse': cell === 3,
+                'opacity-10': cell === 0
+              }"
+            >
+              @if (cell === 1) { <span class="drop-shadow-sm">🌲</span> }
+              @if (cell === 3) { <span class="drop-shadow-md">⭐</span> }
+              
+              @if (robotPosition().x === x && robotPosition().y === y) {
+                <span class="z-20 scale-150 drop-shadow-[0_10px_10px_rgba(0,0,0,0.3)] transition-all duration-300">
+                  {{ playerProfile.avatar }}
+                </span>
+              }
+            </div>
           }
-        </div>
-
-        } }
+        }
       </div>
+      
+      <div class="absolute bottom-10 left-10 text-4xl opacity-20">☁️</div>
+      <div class="absolute top-10 right-10 text-4xl opacity-20">☁️</div>
     </section>
 
-    <aside class="flex-1 w-full max-w-sm mx-auto flex flex-col gap-4 z-20">
-      <div
-        class="bg-white/10 backdrop-blur-xl p-5 md:p-6 rounded-[35px] border-4 border-white/20 flex flex-col h-full shadow-2xl relative"
-      >
-        <h3
-          class="text-white font-black text-center mb-4 uppercase tracking-widest text-sm flex items-center justify-center gap-2"
-        >
-          <span>🎒</span> Sua Mochila
+    <aside class="flex-1 max-w-sm mx-auto w-full flex flex-col gap-4">
+      <div class="bg-white/10 backdrop-blur-xl p-6 rounded-[35px] border-4 border-white/20 flex flex-col h-full shadow-2xl">
+        <h3 class="text-white font-black text-center mb-6 uppercase text-sm tracking-[0.2em]">
+          🎒 Comandos de {{ playerProfile.name }}
         </h3>
 
-        <div class="grid grid-cols-2 gap-3 mb-4">
+        <div class="grid grid-cols-2 gap-4 mb-6">
           <button
             (click)="addCommand('frente')"
-            [disabled]="isRunning()"
-            class="group bg-blue-500 hover:bg-blue-400 p-3 md:p-4 rounded-2xl border-b-8 border-blue-700 active:border-b-0 active:translate-y-2 transition-all disabled:opacity-50 disabled:grayscale"
+            [disabled]="isRunning() || levelCompleted()"
+            class="group bg-blue-500 hover:bg-blue-400 rounded-2xl p-5 font-black text-white shadow-[0_6px_0_rgb(30,64,175)] active:translate-y-1 active:shadow-none transition-all"
           >
-            <span class="block text-2xl group-active:scale-90">⬆️</span>
-            <span class="text-white font-black text-[10px] uppercase">Frente</span>
+            <span class="block text-2xl group-hover:scale-110 transition-transform">⬇️</span>
+            <span class="text-xs uppercase">Baixo</span>
           </button>
 
           <button
             (click)="addCommand('direita')"
-            [disabled]="isRunning()"
-            class="group bg-orange-500 hover:bg-orange-400 p-3 md:p-4 rounded-2xl border-b-8 border-orange-700 active:border-b-0 active:translate-y-2 transition-all disabled:opacity-50 disabled:grayscale"
+            [disabled]="isRunning() || levelCompleted()"
+            class="group bg-orange-500 hover:bg-orange-400 rounded-2xl p-5 font-black text-white shadow-[0_6px_0_rgb(194,65,12)] active:translate-y-1 active:shadow-none transition-all"
           >
-            <span class="block text-2xl group-active:scale-90">➡️</span>
-            <span class="text-white font-black text-[10px] uppercase">Direita</span>
+            <span class="block text-2xl group-hover:scale-110 transition-transform">➡️</span>
+            <span class="text-xs uppercase">Direita</span>
           </button>
         </div>
 
-        <div
-          class="flex-grow bg-black/30 rounded-3xl p-4 overflow-y-auto mb-4 border-2 border-white/10 custom-scrollbar"
-        >
+        <div class="flex-grow bg-black/40 rounded-[2rem] p-4 overflow-y-auto mb-6 border border-white/5 min-h-[120px]">
           @for (cmd of commands(); track $index) {
-          <div
-            class="bg-white/90 mb-2 p-2 rounded-xl flex items-center justify-between group animate-in slide-in-from-right duration-300"
-          >
-            <div class="flex items-center gap-3">
-              <span
-                class="bg-slate-800 text-white w-5 h-5 rounded-full text-[9px] flex items-center justify-center font-black"
-                >{{ $index + 1 }}</span
-              >
-              <span class="font-black text-slate-800 uppercase text-[10px] tracking-tight"
-                >Mover {{ cmd }}</span
-              >
+            <div class="bg-white p-3 rounded-xl mb-2 font-black text-xs uppercase flex justify-between items-center shadow-lg animate-in slide-in-from-right-2">
+              <span class="text-blue-600">#{{ $index + 1 }}</span>
+              <span class="text-slate-800">{{ cmd === 'frente' ? 'Mover Baixo' : 'Mover Direita' }}</span>
+              <span>{{ cmd === 'frente' ? '⬇️' : '➡️' }}</span>
             </div>
-            <span class="text-xs">{{ cmd === 'frente' ? '👣' : '🔄' }}</span>
-          </div>
-          } @empty {
-          <div class="h-full flex flex-col items-center justify-center text-center px-4">
-            <span class="text-4xl opacity-20 mb-2">🧩</span>
-            <p class="text-emerald-200/40 text-[11px] font-bold uppercase leading-tight">
-              Toque nos comandos para criar seu caminho!
-            </p>
-          </div>
+          }
+          @if (commands().length === 0) {
+            <div class="h-full flex flex-col items-center justify-center opacity-30 text-white text-center">
+              <span class="text-3xl mb-2">📥</span>
+              <p class="text-[10px] font-bold uppercase tracking-widest">Aguardando comandos...</p>
+            </div>
           }
         </div>
 
-        <div class="flex gap-2 h-16">
-          <button
-            (click)="clear()"
-            [disabled]="isRunning() || commands().length === 0"
-            class="w-16 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl font-bold border-b-4 border-rose-800 active:border-b-0 flex items-center justify-center transition-all disabled:opacity-50"
-          >
-            🗑️
-          </button>
-
-          <button
-            (click)="runSequence()"
-            [disabled]="isRunning() || commands().length === 0"
-            class="flex-grow bg-yellow-400 hover:bg-yellow-300 text-yellow-950 font-black rounded-2xl border-b-8 border-yellow-600 active:border-b-0 transition-all text-lg shadow-lg flex items-center justify-center gap-3 disabled:grayscale disabled:opacity-50"
-          >
-            @if (isRunning()) {
-            <span class="animate-spin text-xl">⚙️</span>
-            <span>RODANDO...</span>
-            } @else {
-            <span>EXECUTAR!</span>
-            <span class="text-xl">🚀</span>
-            }
-          </button>
-        </div>
+        <button
+          (click)="runSequence()"
+          [disabled]="isRunning() || commands().length === 0 || levelCompleted()"
+          class="w-full py-5 rounded-2xl bg-yellow-400 hover:bg-yellow-300 font-black text-2xl text-amber-950 shadow-[0_8px_0_rgb(180,130,10)] active:translate-y-1 active:shadow-none transition-all uppercase tracking-tighter"
+        >
+          @if (isRunning()) { ⏳ ANDANDO... } @else { 🚀 EXECUTAR! }
+        </button>
       </div>
     </aside>
   </div>
 
-  <footer class="bg-emerald-950/80 py-1 px-4 text-center">
-    <p class="text-[9px] text-emerald-500 font-bold uppercase tracking-[0.2em]">
-      Code Adventure Engine v1.0 • Desenvolvido para Pequenos Exploradores
-    </p>
-  </footer>
+  @if (levelCompleted()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+      <div class="bg-emerald-900 border-[10px] border-emerald-700 rounded-[3rem] p-10 text-center shadow-[0_0_50px_rgba(0,0,0,0.5)] max-w-sm w-full animate-in zoom-in duration-300">
+        <div class="text-8xl mb-6">🏆</div>
+        <h2 class="text-white font-black text-3xl uppercase leading-none mb-2">Boa, {{ playerProfile.name }}!</h2>
+        <p class="text-emerald-300 font-bold mb-8 italic">Você dominou este desafio.</p>
+        <button
+          (click)="goToAvatarSelection()"
+          class="w-full bg-yellow-400 hover:bg-yellow-300 py-5 rounded-full font-black text-xl text-amber-950 shadow-[0_6px_0_rgb(180,130,10)] transition-all active:scale-95"
+        >
+          PRÓXIMA FASE 🚀
+        </button>
+      </div>
+    </div>
+  }
 </main>
