@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
-import { RouterModule, Router } from '@angular/router';
+import { Component, OnInit, inject } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
 import { LoadingService } from '../../core/services/loading';
+import { Level } from '../../models/level.model';
 
 @Component({
   selector: 'app-map',
@@ -12,30 +13,52 @@ import { LoadingService } from '../../core/services/loading';
 })
 export class Map implements OnInit {
   private router = inject(Router);
-  private loading = inject(LoadingService);
+  private loadingService = inject(LoadingService);
 
-  fases = [
-    { id: 1, aberta: true, top: '70%', left: '15%' },
-    { id: 2, aberta: false, top: '55%', left: '25%' },
-    { id: 3, aberta: false, top: '40%', left: '35%' },
-    { id: 4, aberta: false, top: '55%', left: '45%' },
-    { id: 5, aberta: false, top: '70%', left: '55%' },
-    { id: 6, aberta: false, top: '40%', left: '65%' },
-    { id: 7, aberta: false, top: '30%', left: '75%' },
-    { id: 8, aberta: false, top: '45%', left: '85%' },
+  public levels: Level[] = [
+    { id: 1, unlocked: true, top: '70%', left: '15%', status: 'unlocked' },
+    { id: 2, unlocked: false, top: '55%', left: '25%', status: 'locked' },
+    { id: 3, unlocked: false, top: '40%', left: '35%', status: 'locked' },
+    { id: 4, unlocked: false, top: '55%', left: '45%', status: 'locked' },
+    { id: 5, unlocked: false, top: '70%', left: '55%', status: 'locked' },
+    { id: 6, unlocked: false, top: '40%', left: '65%', status: 'locked' },
+    { id: 7, unlocked: false, top: '30%', left: '75%', status: 'locked' },
+    { id: 8, unlocked: false, top: '45%', left: '85%', status: 'locked' },
   ];
 
   ngOnInit(): void {
-    this.loading.stop();
+    this.loadingService.stop();
+    this.updateProgress();
   }
 
-  goToLevel(faseId: number, aberta: boolean): void {
-    if (!aberta) return;
+  private updateProgress(): void {
+    const savedLevel = localStorage.getItem('unlockedLevel');
+    const currentUnlockedLevel = savedLevel ? Number(savedLevel) : 1;
 
-    this.loading.start();
+    this.levels = this.levels.map((level) => {
+      let currentStatus: 'locked' | 'unlocked' | 'completed' = 'locked';
+
+      if (level.id < currentUnlockedLevel) {
+        currentStatus = 'completed';
+      } else if (level.id === currentUnlockedLevel) {
+        currentStatus = 'unlocked';
+      }
+
+      return {
+        ...level,
+        unlocked: level.id <= currentUnlockedLevel,
+        status: currentStatus
+      };
+    });
+  }
+
+  public navigateToLevel(levelId: number, isAvailable: boolean): void {
+    if (!isAvailable) return;
+
+    this.loadingService.start();
 
     setTimeout(() => {
-      this.router.navigate(['/level', faseId]);
-    }, 900);
+      this.router.navigate(['/level', levelId]);
+    }, 700);
   }
 }
