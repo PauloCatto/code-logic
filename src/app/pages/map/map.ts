@@ -16,12 +16,12 @@ export class Map implements OnInit {
   private loadingService = inject(LoadingService);
 
   public levels: Level[] = [
-    { id: 1, unlocked: true, top: '70%', left: '15%', status: 'unlocked' },
+    { id: 1, unlocked: true, top: '75%', left: '15%', status: 'unlocked' },
     { id: 2, unlocked: false, top: '55%', left: '25%', status: 'locked' },
     { id: 3, unlocked: false, top: '40%', left: '35%', status: 'locked' },
     { id: 4, unlocked: false, top: '55%', left: '45%', status: 'locked' },
     { id: 5, unlocked: false, top: '70%', left: '55%', status: 'locked' },
-    { id: 6, unlocked: false, top: '40%', left: '65%', status: 'locked' },
+    { id: 6, unlocked: false, top: '45%', left: '65%', status: 'locked' },
     { id: 7, unlocked: false, top: '30%', left: '75%', status: 'locked' },
     { id: 8, unlocked: false, top: '45%', left: '85%', status: 'locked' },
   ];
@@ -31,7 +31,7 @@ export class Map implements OnInit {
     this.updateProgress();
   }
 
-  private updateProgress(): void {
+  updateProgress(): void {
     const savedLevel = localStorage.getItem('unlockedLevel');
     const currentUnlockedLevel = savedLevel ? Number(savedLevel) : 1;
 
@@ -42,23 +42,21 @@ export class Map implements OnInit {
         currentStatus = 'completed';
       } else if (level.id === currentUnlockedLevel) {
         currentStatus = 'unlocked';
+      } else {
+        currentStatus = 'locked';
       }
 
       return {
         ...level,
         unlocked: level.id <= currentUnlockedLevel,
-        status: currentStatus
+        status: currentStatus,
       };
     });
   }
 
   public navigateToLevel(levelId: number, isAvailable: boolean): void {
     if (!isAvailable) return;
-
     this.loadingService.start();
-
-    setTimeout(() => {
-      this.router.navigate(['/level', levelId]);
-    }, 700);
+    this.router.navigate(['/level', levelId]);
   }
 }

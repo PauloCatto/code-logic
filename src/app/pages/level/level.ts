@@ -19,7 +19,6 @@ export class Level implements OnInit, OnDestroy {
   private feedback = inject(FeedbackService);
   private loading = inject(LoadingService);
   public profileService = inject(ProfileService);
-
   private routeSub?: Subscription;
 
   currentLevelId = signal(1);
@@ -30,43 +29,61 @@ export class Level implements OnInit, OnDestroy {
   isRunning = signal(false);
   levelCompleted = signal(false);
 
+  private lastDir: 'baixo' | 'direita' | 'esquerda' = 'direita';
+
   ngOnInit(): void {
     this.loading.stop();
     this.routeSub = this.route.params.subscribe((params) => {
       const id = Number(params['id'] || 1);
       this.currentLevelId.set(id);
-      this.setupNewLevel(id);
+      this.loadLevelData(id);
     });
   }
 
-  ngOnDestroy(): void {
+  ngOnDestroy() {
     this.routeSub?.unsubscribe();
   }
 
-  setupNewLevel(id: number): void {
+  loadLevelData(id: number) {
     this.resetState();
-    if (id === 1) {
-      this.mapGrid.set([
-        [2, 1, 1, 1, 1],
-        [2, 2, 2, 1, 1],
+    const levels: Record<number, number[][]> = {
+      1: [
+        [2, 2, 1, 1, 1],
+        [1, 2, 2, 1, 1],
         [1, 1, 2, 1, 1],
         [1, 1, 2, 2, 1],
         [1, 1, 1, 2, 3],
-      ]);
-    } else {
-      this.mapGrid.set([
-        [2, 1, 1, 1, 1], // Início (0,0)
-        [0, 1, 1, 1, 1], // Buraco (exige PULAR)
-        [2, 2, 1, 1, 1], // Plataforma
-        [1, 0, 1, 1, 1], // Outro buraco
-        [1, 2, 2, 2, 3], // Caminho final
-      ]);
-    }
+      ],
+
+      2: [
+        [2, 2, 1, 1, 1], // (0,0) Início
+        [1, 2, 1, 1, 1], // (1,1) Ponto de Pulo
+        [1, 0, 1, 1, 1], // (1,2) Buraco
+        [1, 2, 1, 1, 1], // (1,3) Chegada do Pulo
+        [1, 2, 2, 2, 3], // (1,4) Baixo agora funciona e leva para o caminho da estrela
+      ],
+
+      3: [
+        [2, 2, 2, 2, 2],
+        [1, 1, 1, 1, 2],
+        [2, 2, 2, 2, 2],
+        [2, 1, 1, 1, 1],
+        [2, 2, 2, 2, 3],
+      ],
+      4: [
+        [2, 2, 0, 2, 2],
+        [1, 2, 1, 2, 1],
+        [2, 2, 2, 2, 1],
+        [2, 0, 1, 2, 3],
+        [2, 2, 1, 1, 1],
+      ],
+    };
+    this.mapGrid.set(levels[id] || levels[1]);
   }
 
-  addCommand(cmd: string): void {
+  addCommand(cmd: string) {
     if (!this.isRunning() && !this.levelCompleted()) {
-      this.commands.update((list) => [...list, cmd]);
+      this.commands.update((l) => [...l, cmd]);
     }
   }
 
@@ -74,57 +91,79 @@ export class Level implements OnInit, OnDestroy {
     if (this.commands().length === 0) return;
     this.isRunning.set(true);
 
-    let currentPos = { ...this.robotPosition() };
+    let curX = this.robotPosition().x;
+    let curY = this.robotPosition().y;
 
     for (const cmd of this.commands()) {
-      let next: Position = { ...currentPos };
+      let nextX = curX;
+      let nextY = curY;
 
-      if (cmd === 'baixo') next.y += 1;
-      else if (cmd === 'direita') next.x += 1;
-      else if (cmd === 'pular') next.y += 2;
+      if (cmd === 'baixo') {
+        nextY += 1;
+        this.lastDir = 'baixo';
+      } else if (cmd === 'direita') {
+        nextX += 1;
+        this.lastDir = 'direita';
+      } else if (cmd === 'esquerda') {
+        nextX -= 1;
+        this.lastDir = 'esquerda';
+      } else if (cmd === 'pular') {
+        if (this.lastDir === 'baixo') nextY += 2;
+        else if (this.lastDir === 'direita') nextX += 2;
+        else if (this.lastDir === 'esquerda') nextX -= 2;
+      }
 
-      if (!this.isValidMove(next)) {
+      if (this.checkMove(nextX, nextY)) {
+        curX = nextX;
+        curY = nextY;
+        this.robotPosition.set({ x: curX, y: curY });
+        await new Promise((r) => setTimeout(r, 600));
+
+        if (this.mapGrid()[curY][curX] === 3) {
+          const nextLevel = this.currentLevelId() + 1;
+          const saved = localStorage.getItem('unlockedLevel');
+          if (!saved || nextLevel > Number(saved)) {
+            localStorage.setItem('unlockedLevel', nextLevel.toString());
+          }
+
+          this.profileService.completeLevel(this.currentLevelId());
+          this.levelCompleted.set(true);
+          this.isRunning.set(false);
+          return;
+        }
+      } else {
         await this.feedback.showError();
         this.resetState();
         return;
       }
-
-      currentPos = next;
-      this.robotPosition.set({ ...next });
-      await this.delay(500);
-
-      if (this.isVictory(next)) {
-        this.profileService.completeLevel(this.currentLevelId());
-        this.levelCompleted.set(true);
-        this.isRunning.set(false);
-        return;
-      }
     }
     this.isRunning.set(false);
-    this.commands.set([]);
   }
 
-  isValidMove(pos: Position): boolean {
-    const grid = this.mapGrid();
-    if (pos.y < 0 || pos.y >= grid.length || pos.x < 0 || pos.x >= grid[0].length) return false;
+  async finish(): Promise<void> {
+    const id = this.currentLevelId();
+    this.loading.start();
 
-    const cell = grid[pos.y][pos.x];
+    setTimeout(() => {
+      if (id === 1) {
+        this.router.navigate(['/avatar']);
+      } else {
+        this.router.navigate(['/map']);
+      }
+    }, 600);
+  }
+  checkMove(x: number, y: number): boolean {
+    const grid = this.mapGrid();
+    if (y < 0 || y >= grid.length || x < 0 || x >= grid[0].length) return false;
+    const cell = grid[y][x];
     return cell === 2 || cell === 3;
   }
-
-  isVictory = (pos: Position) => this.mapGrid()[pos.y]?.[pos.x] === 3;
 
   resetState(): void {
     this.robotPosition.set({ x: 0, y: 0 });
     this.commands.set([]);
     this.isRunning.set(false);
     this.levelCompleted.set(false);
-  }
-
-  delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
-
-  async finish(): Promise<void> {
-    this.loading.start();
-    setTimeout(() => this.router.navigate([this.currentLevelId() === 1 ? '/avatar' : '/map']), 800);
+    this.lastDir = 'direita';
   }
 }

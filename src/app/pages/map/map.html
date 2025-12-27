@@ -1,4 +1,6 @@
-<main class="h-screen w-full bg-blue-300 flex flex-col items-center justify-between p-6 font-sans overflow-hidden">
+<main
+  class="h-screen w-full bg-blue-300 flex flex-col items-center justify-between p-6 font-sans overflow-hidden"
+>
   <header class="w-full flex justify-center pt-4">
     <div class="bg-orange-600 border-4 border-orange-800 px-12 py-3 rounded-2xl shadow-xl">
       <h1 class="text-white text-3xl md:text-4xl font-black uppercase tracking-tight text-center">
@@ -7,36 +9,39 @@
     </div>
   </header>
 
-  <div class="relative w-full max-w-5xl flex-grow my-8 bg-[#94d66d] rounded-[100px] border-b-[20px] border-[#5da13a] shadow-2xl border-8 border-[#b4e695] overflow-hidden">
+  <div
+    class="relative w-full max-w-5xl flex-grow my-8 bg-[#94d66d] rounded-[100px] border-b-[20px] border-[#5da13a] shadow-2xl border-8 border-[#b4e695] overflow-hidden"
+  >
     <div class="absolute top-10 left-10 text-5xl opacity-40">🌴</div>
     <div class="absolute bottom-10 right-10 text-5xl opacity-40">🌴</div>
 
     <div class="absolute inset-0">
       @for (level of levels; track level.id) {
-        <button
-          (click)="navigateToLevel(level.id, level.status !== 'locked')"
-          [disabled]="level.status === 'locked'"
-          [ngStyle]="{ top: level.top, left: level.left }"
-          class="absolute -translate-x-1/2 -translate-y-1/2 w-14 h-14 md:w-16 md:h-16 border-4 rounded-full flex items-center justify-center text-white text-2xl font-black transition-all z-10"
-          [ngClass]="{
-            'bg-blue-500 border-blue-700 hover:scale-110 active:scale-95 shadow-[0_6px_0_0_rgba(29,78,216,1)] cursor-pointer': level.status === 'unlocked',
-            'bg-green-500 border-green-700 shadow-[0_6px_0_0_rgba(21,128,61,1)]': level.status === 'completed',
-            'bg-gray-400 border-gray-500 opacity-60 cursor-not-allowed shadow-[0_6_0_0_rgba(107,114,128,1)]': level.status === 'locked'
-          }"
-        >
-          @if (level.status === 'locked') {
-            <span class="text-xl">🔒</span>
-          } @else if (level.status === 'completed') {
-            <span>⭐</span>
-          } @else {
-            <span>{{ level.id }}</span>
-          }
-        </button>
+      <button
+        (click)="navigateToLevel(level.id, level.status !== 'locked')"
+        [disabled]="level.status === 'locked'"
+        [ngStyle]="{ top: level.top, left: level.left }"
+        class="absolute -translate-x-1/2 -translate-y-1/2 w-14 h-14 md:w-16 md:h-16 border-4 rounded-full flex items-center justify-center text-white text-2xl font-black transition-all z-10"
+        [ngClass]="{
+          'bg-blue-500 border-blue-700 hover:scale-110 active:scale-95 shadow-[0_6px_0_0_rgba(29,78,216,1)] cursor-pointer':
+            level.status === 'unlocked',
+          'bg-green-500 border-green-700 shadow-[0_6px_0_0_rgba(21,128,61,1)]':
+            level.status === 'completed',
+          'bg-gray-400 border-gray-500 opacity-60 cursor-not-allowed shadow-[0_6_0_0_rgba(107,114,128,1)]':
+            level.status === 'locked'
+        }"
+      >
+        @if (level.status === 'locked') {
+        <span class="text-xl">🔒</span>
+        } @else if (level.status === 'completed') {
+        <span>⭐</span>
+        } @else {
+        <span>{{ level.id }}</span>
+        }
+      </button>
       }
 
-      <div class="absolute top-[50%] left-[93%] -translate-y-1/2 text-5xl animate-pulse">
-        🚩
-      </div>
+      <div class="absolute top-[50%] left-[93%] -translate-y-1/2 text-5xl animate-pulse">🚩</div>
     </div>
   </div>
 
