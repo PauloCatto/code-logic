@@ -1,37 +1,54 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { LoadingService } from '../../core/services/loading';
 import { Level } from '../../models/level.model';
+import { GameDialog } from '../../components/game-dialog/game-dialog';
 
 @Component({
   selector: 'app-map',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, GameDialog],
   templateUrl: './map.html',
-  styleUrl: './map.scss',
+  styleUrls: ['./map.scss'],
 })
 export class Map implements OnInit {
   private router = inject(Router);
   private loadingService = inject(LoadingService);
 
-  public levels: Level[] = [
-    { id: 1, unlocked: true, top: '75%', left: '15%', status: 'unlocked' },
-    { id: 2, unlocked: false, top: '55%', left: '25%', status: 'locked' },
-    { id: 3, unlocked: false, top: '40%', left: '35%', status: 'locked' },
-    { id: 4, unlocked: false, top: '55%', left: '45%', status: 'locked' },
-    { id: 5, unlocked: false, top: '70%', left: '55%', status: 'locked' },
-    { id: 6, unlocked: false, top: '45%', left: '65%', status: 'locked' },
-    { id: 7, unlocked: false, top: '30%', left: '75%', status: 'locked' },
-    { id: 8, unlocked: false, top: '45%', left: '85%', status: 'locked' },
-  ];
+  public levels: Level[] = [];
+
+  showDialog = signal(false);
+  confirm = signal(false);
+  showCancel = signal(false);
+
+  dialogData = signal({
+    title: 'Reiniciar Progresso',
+    message: 'Tem certeza que deseja apagar todo o progresso? Isso não poderá ser desfeito!',
+    buttonText: 'Sim',
+  });
 
   ngOnInit(): void {
     this.loadingService.stop();
+    this.resetLevels();
+  }
+
+  private resetLevels(): void {
+    this.levels = [
+      { id: 1, unlocked: true, top: '75%', left: '15%', status: 'unlocked' },
+      { id: 2, unlocked: false, top: '55%', left: '25%', status: 'locked' },
+      { id: 3, unlocked: false, top: '40%', left: '35%', status: 'locked' },
+      { id: 4, unlocked: false, top: '55%', left: '45%', status: 'locked' },
+      { id: 5, unlocked: false, top: '70%', left: '55%', status: 'locked' },
+      { id: 6, unlocked: false, top: '45%', left: '65%', status: 'locked' },
+      { id: 7, unlocked: false, top: '30%', left: '75%', status: 'locked' },
+      { id: 8, unlocked: false, top: '45%', left: '85%', status: 'locked' },
+    ];
+
     this.updateProgress();
   }
 
-  updateProgress(): void {
+  private updateProgress(): void {
     const savedLevel = localStorage.getItem('unlockedLevel');
     const currentUnlockedLevel = savedLevel ? Number(savedLevel) : 1;
 
@@ -42,8 +59,6 @@ export class Map implements OnInit {
         currentStatus = 'completed';
       } else if (level.id === currentUnlockedLevel) {
         currentStatus = 'unlocked';
-      } else {
-        currentStatus = 'locked';
       }
 
       return {
@@ -54,9 +69,31 @@ export class Map implements OnInit {
     });
   }
 
-  public navigateToLevel(levelId: number, isAvailable: boolean): void {
+  navigateToLevel(levelId: number, isAvailable: boolean): void {
     if (!isAvailable) return;
     this.loadingService.start();
     this.router.navigate(['/level', levelId]);
+  }
+
+  confirmResetProgress(): void {
+    this.confirm.set(true);
+    this.showCancel.set(true);
+    this.showDialog.set(true);
+  }
+
+  onDialogClose(confirmed: boolean): void {
+    this.showDialog.set(false);
+    this.confirm.set(false);
+    this.showCancel.set(false);
+
+    if (!confirmed) return;
+
+    this.loadingService.start();
+    localStorage.removeItem('unlockedLevel');
+
+    setTimeout(() => {
+      this.resetLevels();
+      this.loadingService.stop();
+    }, 500);
   }
 }
