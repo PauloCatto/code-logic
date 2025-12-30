@@ -28,6 +28,7 @@ export class Level implements OnInit, OnDestroy {
   mapGrid: WritableSignal<number[][]> = signal([]);
   isRunning = signal(false);
   levelCompleted = signal(false);
+  executedIndex: number = 0;
 
   private lastDir: 'baixo' | 'direita' | 'esquerda' = 'direita';
 
@@ -40,11 +41,11 @@ export class Level implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.routeSub?.unsubscribe();
   }
 
-  loadLevelData(id: number) {
+  loadLevelData(id: number): void {
     this.resetState();
     const levels: Record<number, number[][]> = {
       1: [
@@ -54,15 +55,13 @@ export class Level implements OnInit, OnDestroy {
         [1, 1, 2, 2, 1],
         [1, 1, 1, 2, 3],
       ],
-
       2: [
-        [2, 2, 1, 1, 1], // (0,0) Início
-        [1, 2, 1, 1, 1], // (1,1) Ponto de Pulo
-        [1, 0, 1, 1, 1], // (1,2) Buraco
-        [1, 2, 1, 1, 1], // (1,3) Chegada do Pulo
-        [1, 2, 2, 2, 3], // (1,4) Baixo agora funciona e leva para o caminho da estrela
+        [2, 2, 1, 1, 1],
+        [1, 2, 1, 1, 1],
+        [1, 0, 1, 1, 1],
+        [1, 2, 1, 1, 1],
+        [1, 2, 2, 2, 3],
       ],
-
       3: [
         [2, 2, 2, 2, 2],
         [1, 1, 1, 1, 2],
@@ -81,10 +80,8 @@ export class Level implements OnInit, OnDestroy {
     this.mapGrid.set(levels[id] || levels[1]);
   }
 
-  addCommand(cmd: string) {
-    if (!this.isRunning() && !this.levelCompleted()) {
-      this.commands.update((l) => [...l, cmd]);
-    }
+  addCommand(cmd: string): void {
+    if (!this.isRunning() && !this.levelCompleted()) this.commands.update((l) => [...l, cmd]);
   }
 
   async runSequence(): Promise<void> {
@@ -93,8 +90,10 @@ export class Level implements OnInit, OnDestroy {
 
     let curX = this.robotPosition().x;
     let curY = this.robotPosition().y;
+    const sequence = this.commands();
 
-    for (const cmd of this.commands()) {
+    for (let i = this.executedIndex; i < sequence.length; i++) {
+      const cmd = sequence[i];
       let nextX = curX;
       let nextY = curY;
 
@@ -113,55 +112,49 @@ export class Level implements OnInit, OnDestroy {
         else if (this.lastDir === 'esquerda') nextX -= 2;
       }
 
-      if (this.checkMove(nextX, nextY)) {
-        curX = nextX;
-        curY = nextY;
-        this.robotPosition.set({ x: curX, y: curY });
-        await new Promise((r) => setTimeout(r, 600));
-
-        if (this.mapGrid()[curY][curX] === 3) {
-          const nextLevel = this.currentLevelId() + 1;
-          const saved = localStorage.getItem('unlockedLevel');
-          if (!saved || nextLevel > Number(saved)) {
-            localStorage.setItem('unlockedLevel', nextLevel.toString());
-          }
-
-          this.profileService.completeLevel(this.currentLevelId());
-          this.levelCompleted.set(true);
-          this.isRunning.set(false);
-          return;
-        }
-      } else {
+      if (!this.checkMove(nextX, nextY)) {
         await this.feedback.showError();
         this.resetState();
+        this.executedIndex = 0;
+        return;
+      }
+
+      curX = nextX;
+      curY = nextY;
+      this.robotPosition.set({ x: curX, y: curY });
+      this.executedIndex = i + 1;
+
+      await new Promise((r) => setTimeout(r, 600));
+
+      if (this.mapGrid()[curY][curX] === 3) {
+        this.levelCompleted.set(true);
+        this.isRunning.set(false);
         return;
       }
     }
+
     this.isRunning.set(false);
   }
 
-  async finish(): Promise<void> {
+  finish(): void {
     const id = this.currentLevelId();
     this.loading.start();
 
     setTimeout(() => {
-      if (id === 1) {
-        this.router.navigate(['/avatar']);
-      } else {
-        this.router.navigate(['/map']);
-      }
-    }, 600);
+      this.router.navigate(id === 1 ? ['/avatar'] : ['/map']);
+    }, 500);
   }
+
   checkMove(x: number, y: number): boolean {
     const grid = this.mapGrid();
     if (y < 0 || y >= grid.length || x < 0 || x >= grid[0].length) return false;
-    const cell = grid[y][x];
-    return cell === 2 || cell === 3;
+    return grid[y][x] === 2 || grid[y][x] === 3;
   }
 
   resetState(): void {
     this.robotPosition.set({ x: 0, y: 0 });
     this.commands.set([]);
+    this.executedIndex = 0;
     this.isRunning.set(false);
     this.levelCompleted.set(false);
     this.lastDir = 'direita';
