@@ -1,3 +1,11 @@
+<app-game-dialog
+  *ngIf="showDialog()"
+  [title]="dialogData().title"
+  [message]="dialogData().message"
+  [buttonText]="dialogData().buttonText"
+  (close)="onDialogClose()"
+></app-game-dialog>
+
 <main
   class="min-h-screen w-full bg-slate-950 text-white flex items-center justify-center font-sans relative overflow-hidden"
 >

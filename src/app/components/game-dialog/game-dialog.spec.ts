@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Blockly } from './blockly';
+import { GameDialog } from './game-dialog';
 
-describe('Blockly', () => {
-  let component: Blockly;
-  let fixture: ComponentFixture<Blockly>;
+describe('GameDialog', () => {
+  let component: GameDialog;
+  let fixture: ComponentFixture<GameDialog>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Blockly]
+      imports: [GameDialog]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Blockly);
+    fixture = TestBed.createComponent(GameDialog);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
