@@ -91,7 +91,7 @@
             <span class="block text-2xl">⬅️</span>
             <span class="text-[9px] font-black uppercase opacity-60">Esquerda</span>
           </button>
-          } @if (currentLevelId() === 2 || currentLevelId() === 4) {
+          } @if ([2,4,5,6,7,8].includes(currentLevelId())) {
           <button
             (click)="addCommand('pular')"
             [disabled]="isRunning()"

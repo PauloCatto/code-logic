@@ -76,7 +76,36 @@ export class Level implements OnInit, OnDestroy {
         [2, 0, 1, 2, 3],
         [2, 2, 1, 1, 1],
       ],
+      5: [
+        [2, 0, 2, 2, 2],
+        [2, 0, 0, 0, 2],
+        [2, 2, 2, 0, 2],
+        [0, 0, 2, 0, 2],
+        [2, 2, 2, 2, 3],
+      ],
+      6: [
+        [2, 2, 0, 2, 2],
+        [0, 2, 0, 0, 2],
+        [2, 2, 2, 0, 2],
+        [2, 0, 0, 0, 2],
+        [2, 2, 2, 2, 3],
+      ],
+      7: [
+        [2, 2, 0, 2, 2],
+        [0, 2, 2, 2, 0],
+        [2, 0, 2, 0, 2],
+        [2, 2, 2, 2, 2],
+        [0, 0, 2, 0, 3],
+      ],
+      8: [
+        [2, 2, 0, 2, 2],
+        [2, 0, 2, 0, 2],
+        [2, 2, 2, 2, 0],
+        [0, 2, 0, 2, 2],
+        [2, 0, 2, 0, 3],
+      ],
     };
+
     this.mapGrid.set(levels[id] || levels[1]);
   }
 
@@ -138,8 +167,15 @@ export class Level implements OnInit, OnDestroy {
 
   finish(): void {
     const id = this.currentLevelId();
-    this.loading.start();
 
+    const savedLevel = localStorage.getItem('unlockedLevel');
+    const currentUnlockedLevel = savedLevel ? Number(savedLevel) : 1;
+
+    if (id >= currentUnlockedLevel) {
+      localStorage.setItem('unlockedLevel', String(id + 1));
+    }
+
+    this.loading.start();
     setTimeout(() => {
       this.router.navigate(id === 1 ? ['/avatar'] : ['/map']);
     }, 500);
