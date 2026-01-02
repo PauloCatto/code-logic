@@ -1,106 +1,90 @@
-<h1>🧠 Kids Logic Game</h1>
+🧠 Code & Logic
+<p align="center"> <strong>Aprenda lógica e programação de forma divertida — para crianças e adultos!</strong> </p> <p align="center"> <img src="https://img.shields.io/badge/status-in%20development-yellow" alt="status"> <img src="https://img.shields.io/badge/frontend-Angular-blue" alt="Angular"> <img src="https://img.shields.io/badge/backend-Supabase-green" alt="Supabase"> </p>
+🎯 Objetivo do projeto
 
-<p>
-  Um aplicativo educacional focado em <strong>estimular o raciocínio lógico de crianças</strong>
-  por meio de jogos simples, visuais e interativos.
-</p>
+Code & Logic nasceu para:
 
-<p>
-  A proposta é <strong>aprender brincando</strong> — sem excesso de texto,
-  sem complexidade desnecessária e com feedback visual claro.
-</p>
+Desenvolver o <strong>pensamento lógico</strong> e a capacidade de resolver problemas.
 
-<hr />
+Criar experiências amigáveis e intuitivas para crianças, e desafios complexos para adultos.
 
-<h2>🎯 Objetivo do projeto</h2>
+Servir como laboratório de boas práticas em <strong>frontend moderno</strong>, integrando Angular, Tailwind e backend moderno.
 
-<p>O <strong>Kids Logic Game</strong> nasce com três objetivos principais:</p>
+O projeto é também um ambiente para praticar Angular Signals, permitindo gerenciar estado de forma reativa e eficiente, sem precisar de bibliotecas externas de state management.
 
-<ul>
-  <li>Desenvolver o <strong>pensamento lógico</strong> e a capacidade de resolver problemas</li>
-  <li>Criar uma experiência <strong>amigável, colorida e intuitiva</strong> para crianças</li>
-  <li>Servir como um projeto prático de <strong>evolução técnica em frontend moderno</strong></li>
-</ul>
+🧩 Funcionalidades atuais
+Para crianças:
 
-<p>
-  Este projeto também funciona como um <strong>laboratório de boas práticas</strong>
-  em Angular, organização de código e UI, além de integração com serviços backend modernos.
-</p>
+Jogos de lógica visual e interativos.
 
-<hr />
+Controle de níveis e progressão de forma simples.
 
-<h2>🧩 O que o app oferece (fase inicial)</h2>
+Interface pensada para desktop e mobile.
 
-<ul>
-  <li>Tela inicial amigável para crianças</li>
-  <li>Jogos simples de lógica <em>(em evolução)</em></li>
-  <li>Interface pensada para dispositivos <strong>desktop e mobile</strong></li>
-  <li>Estilo visual <strong>limpo, acessível e divertido</strong></li>
-</ul>
+Feedback visual imediato e intuitivo.
 
-<p>
-  Novas fases, jogos e melhorias visuais serão adicionados progressivamente.
-</p>
+Para adultos:
 
-<hr />
+Painel administrativo para criar desafios e acompanhar progresso.
 
-<h2>🧠 Arquitetura e conceito</h2>
+Gerenciamento de perfis e conquistas.
 
-<p>
-  O frontend não é apenas uma camada visual.
-  Ele contém a <strong>engine de execução da lógica do jogo</strong>,
-  responsável por interpretar ações, executar comandos e controlar o estado do jogo.
-</p>
+Nível de dificuldade maior, focado em lógica avançada.
 
-<p>
-  A persistência de dados e autenticação são planejadas utilizando
-  <strong>Supabase</strong>, permitindo:
-</p>
+Uso de Angular Signals para acompanhar estados de forma reativa, prática e moderna.
 
-<ul>
-  <li>Autenticação do responsável (login social)</li>
-  <li>Criação e gerenciamento de perfis de crianças</li>
-  <li>Salvamento de progresso, fases concluídas e conquistas</li>
-  <li>Base escalável para evolução futura do app</li>
-</ul>
+🧠 Arquitetura e conceito
 
-<p>
-  O Supabase atua como backend-as-a-service, reduzindo complexidade
-  e permitindo foco total na experiência do usuário.
-</p>
+O frontend contém a engine de execução da lógica do jogo, responsável por:
 
-<hr />
+Interpretar comandos dos jogadores.
 
-<h2>🛠️ Tecnologias utilizadas</h2>
+Controlar estados dos níveis.
 
-<ul>
-  <li>Angular (standalone)</li>
-  <li>TypeScript</li>
-  <li>Tailwind CSS</li>
-  <li>HTML semântico</li>
-  <li>PostCSS</li>
-  <li>Supabase</li>
-</ul>
+Atualizar progressão e conquistas de forma reativa.
 
-<p>
-  O projeto segue uma estrutura organizada por <strong>features</strong>,
-  facilitando manutenção, testes e evolução contínua.
-</p>
+O backend é feito com Supabase, permitindo:
 
-<hr />
+Autenticação de usuários adultos (login social ou email/senha).
 
-<h2>🚧 Status do projeto</h2>
+Criação e gerenciamento de perfis de crianças.
 
-<p>
-  🟡 <strong>Em desenvolvimento</strong>
-</p>
+Salvamento de progresso, fases concluídas e conquistas.
 
-<p>
-  O projeto está em fase inicial, com foco na <strong>estrutura</strong>,
-  <strong>primeira tela</strong> e <strong>base visual</strong>.
-</p>
+Base escalável para evolução futura.
 
-<p>
-  Funcionalidades como autenticação, persistência de progresso
-  e novos jogos serão incrementadas de forma contínua.
-</p>
+🛠️ Tecnologias utilizadas
+
+Angular (Standalone + Signals)
+
+TypeScript
+
+Tailwind CSS
+
+HTML semântico
+
+PostCSS
+
+Supabase (BaaS)
+
+O projeto segue uma estrutura por features, facilitando manutenção, testes e evolução contínua.
+
+📌 Status do projeto
+
+🟡 Em desenvolvimento
+
+Base inicial criada, com login, tela de boas-vindas, avatar e níveis para crianças.
+
+Painel adulto em implementação, focando em lógica avançada e gerenciamento de perfis.
+
+🔮 Próximos passos
+
+Criar desafios complexos para adultos, envolvendo raciocínio lógico avançado.
+
+Expandir níveis de crianças com lógica progressiva.
+
+Adicionar integração completa com backend (Supabase) para persistência e autenticação.
+
+Refinar UI/UX e responsividade em todos os dispositivos.
+
+Testes unitários e E2E para garantir qualidade.
