@@ -44,17 +44,22 @@ export class Avatar implements OnInit {
   }
 
   confirmSelection(): void {
-    if (!this.selectedAvatar()) return;
+    const avatar = this.selectedAvatar();
+    const name = this.playerName().trim();
+
+    if (!avatar || !name) return;
 
     this.profile.setProfile({
-      name: this.playerName().trim() || 'Explorador',
-      avatar: this.selectedAvatar()!.icon,
+      name,
+      avatar: avatar.icon,
     });
 
     this.loading.start();
 
     setTimeout(() => {
-      this.router.navigate(['/map']);
-    }, 900);
+      this.router.navigate(['/login'], {
+        queryParams: { from: 'avatar' },
+      });
+    }, 600);
   }
 }

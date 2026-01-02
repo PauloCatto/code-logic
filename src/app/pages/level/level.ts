@@ -206,6 +206,12 @@ export class Level implements OnInit, OnDestroy {
   finish(): void {
     const id = this.currentLevelId();
     localStorage.setItem('unlockedLevel', String(id + 1));
+
+    if (id === 1) {
+      this.router.navigate(['/avatar']);
+      return;
+    }
+
     this.router.navigate(['/map']);
   }
 
