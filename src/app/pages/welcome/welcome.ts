@@ -19,16 +19,27 @@ export class Welcome {
   dialogData = signal({
     title: 'Como Jogar',
     message: `
-    Olá! 🐾
-    Use os botões para controlar o seu robô:
-    
-    ⬇️ Baixo  
-    ➡️ Direita  
-    ⬅️ Esquerda (disponível a partir do Level 3)  
-    ⤴️ Pulo Duplo (disponível em alguns desafios)
-    
-    O objetivo é chegar na estrela ⭐ de cada fase!  
-    Observe os obstáculos, planeje seus movimentos e divirta-se explorando cada desafio!
+  Olá! 🐾🤖
+
+  Aqui você não controla o robô diretamente.
+  Você monta uma sequência de comandos e depois executa tudo de uma vez.
+
+  📦 Comandos disponíveis:
+  ⬇️ Baixo  
+  ➡️ Direita  
+  ⬅️ Esquerda (liberado a partir do Level 3)  
+  ⤴️ Pulo Duplo (em desafios específicos)
+
+  ▶️ Como funciona:
+  • Adicione os comandos na ordem desejada  
+  • Execute a sequência quando estiver pronto  
+  • O robô continuará do ponto onde parou, mesmo se você voltar ou ajustar os comandos  
+
+  ⭐ Objetivo:
+  Leve o robô até a estrela de cada fase.
+  Observe o mapa, evite obstáculos e pense alguns passos à frente.
+
+  Aqui, planejar bem é tão importante quanto executar.
   `,
     buttonText: 'Vamos lá!',
   });
