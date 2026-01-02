@@ -1,7 +1,9 @@
-import { Component, signal, inject, OnInit, OnDestroy, WritableSignal } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
+import * as Blockly from 'blockly';
+
 import { FeedbackService } from '../../core/services/feedback';
 import { LoadingService } from '../../core/services/loading';
 import { ProfileService } from '../../core/services/profile';
@@ -19,34 +21,195 @@ export class Level implements OnInit, OnDestroy {
   private feedback = inject(FeedbackService);
   private loading = inject(LoadingService);
   public profileService = inject(ProfileService);
+
   private routeSub?: Subscription;
+  private workspace?: Blockly.WorkspaceSvg;
 
   currentLevelId = signal(1);
   playerProfile = this.profileService.getProfile();
-  commands: WritableSignal<string[]> = signal([]);
-  robotPosition: WritableSignal<Position> = signal({ x: 0, y: 0 });
-  mapGrid: WritableSignal<number[][]> = signal([]);
+  robotPosition = signal<Position>({ x: 0, y: 0 });
+  mapGrid = signal<number[][]>([]);
   isRunning = signal(false);
   levelCompleted = signal(false);
-  executedIndex: number = 0;
 
   private lastDir: 'baixo' | 'direita' | 'esquerda' = 'direita';
+  private jumpAllowedLevels: number[] = [2, 4, 5, 6, 7, 8];
+  private executionIndex: number = 0;
 
   ngOnInit(): void {
     this.loading.stop();
+
     this.routeSub = this.route.params.subscribe((params) => {
       const id = Number(params['id'] || 1);
       this.currentLevelId.set(id);
       this.loadLevelData(id);
+      queueMicrotask(() => this.initBlockly());
     });
   }
 
   ngOnDestroy(): void {
     this.routeSub?.unsubscribe();
+    this.workspace?.dispose();
+  }
+
+  initBlockly(): void {
+    if (this.workspace) this.workspace.dispose();
+
+    this.registerBlocks();
+
+    this.workspace = Blockly.inject('blocklyDiv', {
+      toolbox: {
+        kind: 'flyoutToolbox',
+        contents: [
+          { kind: 'block', type: 'baixo' },
+          { kind: 'block', type: 'direita' },
+          { kind: 'block', type: 'esquerda' },
+          { kind: 'block', type: 'pular' },
+        ],
+      },
+      trashcan: true,
+    });
+  }
+
+  registerBlocks(): void {
+    const create = (type: string, label: string, color: number) => {
+      Blockly.Blocks[type] = {
+        init() {
+          this.appendDummyInput().appendField(label);
+          this.setPreviousStatement(true);
+          this.setNextStatement(true);
+          this.setColour(color);
+        },
+      };
+    };
+
+    create('baixo', '⬇ descer', 180);
+    create('direita', '➡ direita', 200);
+    create('esquerda', '⬅ esquerda', 160);
+    create('pular', '⤴ pular', 260);
+  }
+
+  runFromBlockly(): void {
+    if (!this.workspace || this.isRunning()) return;
+
+    const commands: string[] = [];
+
+    const topBlocks = this.workspace.getTopBlocks(true);
+    if (!topBlocks.length) return;
+
+    let block: Blockly.Block | null = topBlocks[0];
+
+    while (block) {
+      commands.push(block.type);
+      block = block.getNextBlock();
+    }
+
+    this.runSequence(commands);
+  }
+
+  async runSequence(commands: string[]): Promise<void> {
+    if (this.executionIndex >= commands.length) return;
+
+    this.isRunning.set(true);
+
+    let { x, y } = this.robotPosition();
+
+    for (let i = this.executionIndex; i < commands.length; i++) {
+      const cmd = commands[i];
+
+      if (cmd === 'pular') {
+        if (!this.jumpAllowedLevels.includes(this.currentLevelId())) {
+          await this.feedback.showError();
+          this.resetGame();
+          return;
+        }
+
+        let nx = x;
+        let ny = y;
+
+        for (let step = 0; step < 2; step++) {
+          if (this.lastDir === 'baixo') ny++;
+          else if (this.lastDir === 'direita') nx++;
+          else if (this.lastDir === 'esquerda') nx--;
+        }
+
+        if (!this.isWalkable(nx, ny)) {
+          await this.feedback.showError();
+          this.resetGame();
+          return;
+        }
+
+        x = nx;
+        y = ny;
+        this.robotPosition.set({ x, y });
+        await this.delay(400);
+      } else {
+        let nx = x;
+        let ny = y;
+
+        if (cmd === 'baixo') {
+          ny++;
+          this.lastDir = 'baixo';
+        } else if (cmd === 'direita') {
+          nx++;
+          this.lastDir = 'direita';
+        } else if (cmd === 'esquerda') {
+          nx--;
+          this.lastDir = 'esquerda';
+        }
+
+        if (!this.isWalkable(nx, ny)) {
+          await this.feedback.showError();
+          this.resetGame();
+          return;
+        }
+
+        x = nx;
+        y = ny;
+        this.robotPosition.set({ x, y });
+        await this.delay(600);
+      }
+
+      this.executionIndex++;
+
+      if (this.mapGrid()[y][x] === 3) {
+        this.levelCompleted.set(true);
+        break;
+      }
+    }
+
+    this.isRunning.set(false);
+  }
+
+  isWalkable(x: number, y: number): boolean {
+    const g = this.mapGrid();
+    return g[y]?.[x] === 2 || g[y]?.[x] === 3;
+  }
+
+  resetGame(): void {
+    this.robotPosition.set({ x: 0, y: 0 });
+    this.lastDir = 'direita';
+    this.executionIndex = 0;
+    this.isRunning.set(false);
+    this.levelCompleted.set(false);
+  }
+
+  resetState(): void {
+    this.resetGame();
+    this.workspace?.clear();
+  }
+
+  delay(ms: number): Promise<void> {
+    return new Promise((r) => setTimeout(r, ms));
+  }
+
+  finish(): void {
+    const id = this.currentLevelId();
+    localStorage.setItem('unlockedLevel', String(id + 1));
+    this.router.navigate(['/map']);
   }
 
   loadLevelData(id: number): void {
-    this.resetState();
     const levels: Record<number, number[][]> = {
       1: [
         [2, 2, 1, 1, 1],
@@ -107,92 +270,5 @@ export class Level implements OnInit, OnDestroy {
     };
 
     this.mapGrid.set(levels[id] || levels[1]);
-  }
-
-  addCommand(cmd: string): void {
-    if (!this.isRunning() && !this.levelCompleted()) this.commands.update((l) => [...l, cmd]);
-  }
-
-  async runSequence(): Promise<void> {
-    if (this.commands().length === 0) return;
-    this.isRunning.set(true);
-
-    let curX = this.robotPosition().x;
-    let curY = this.robotPosition().y;
-    const sequence = this.commands();
-
-    for (let i = this.executedIndex; i < sequence.length; i++) {
-      const cmd = sequence[i];
-      let nextX = curX;
-      let nextY = curY;
-
-      if (cmd === 'baixo') {
-        nextY += 1;
-        this.lastDir = 'baixo';
-      } else if (cmd === 'direita') {
-        nextX += 1;
-        this.lastDir = 'direita';
-      } else if (cmd === 'esquerda') {
-        nextX -= 1;
-        this.lastDir = 'esquerda';
-      } else if (cmd === 'pular') {
-        if (this.lastDir === 'baixo') nextY += 2;
-        else if (this.lastDir === 'direita') nextX += 2;
-        else if (this.lastDir === 'esquerda') nextX -= 2;
-      }
-
-      if (!this.checkMove(nextX, nextY)) {
-        await this.feedback.showError();
-        this.resetState();
-        this.executedIndex = 0;
-        return;
-      }
-
-      curX = nextX;
-      curY = nextY;
-      this.robotPosition.set({ x: curX, y: curY });
-      this.executedIndex = i + 1;
-
-      await new Promise((r) => setTimeout(r, 600));
-
-      if (this.mapGrid()[curY][curX] === 3) {
-        this.levelCompleted.set(true);
-        this.isRunning.set(false);
-        return;
-      }
-    }
-
-    this.isRunning.set(false);
-  }
-
-  finish(): void {
-    const id = this.currentLevelId();
-
-    const savedLevel = localStorage.getItem('unlockedLevel');
-    const currentUnlockedLevel = savedLevel ? Number(savedLevel) : 1;
-
-    if (id >= currentUnlockedLevel) {
-      localStorage.setItem('unlockedLevel', String(id + 1));
-    }
-
-    this.loading.start();
-    setTimeout(() => {
-      this.router.navigate(id === 1 ? ['/avatar'] : ['/map']);
-    }, 500);
-  }
-
-  checkMove(x: number, y: number): boolean {
-    const grid = this.mapGrid();
-    if (y < 0 || y >= grid.length || x < 0 || x >= grid[0].length) return false;
-    return grid[y][x] === 2 || grid[y][x] === 3;
-  }
-
-  resetState(): void {
-    this.robotPosition.set({ x: 0, y: 0 });
-    this.commands.set([]);
-    this.executedIndex = 0;
-    this.isRunning.set(false);
-    this.levelCompleted.set(false);
-    this.lastDir = 'direita';
   }
 }

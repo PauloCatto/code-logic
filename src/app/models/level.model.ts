@@ -11,5 +11,3 @@ export interface Level {
 }
 
 export type LevelStatus = 'locked' | 'unlocked' | 'completed';
-
-export type Command = 'frente' | 'direita' | 'pular';
