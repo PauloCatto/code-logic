@@ -48,6 +48,10 @@ export class Welcome {
     this.showDialog.set(true);
   }
 
+  enterAdultMode(): void {
+    this.router.navigate(['/login']);
+  }
+
   onDialogClose(): void {
     this.showDialog.set(false);
     this.loading.start();
