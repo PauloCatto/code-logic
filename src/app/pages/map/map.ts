@@ -92,8 +92,8 @@ export class Map implements OnInit {
     localStorage.removeItem('unlockedLevel');
 
     setTimeout(() => {
-      this.resetLevels();
-      this.loadingService.stop();
+      // TEMP: full reload until backend/state sync is implemented
+      window.location.reload();
     }, 500);
   }
 }

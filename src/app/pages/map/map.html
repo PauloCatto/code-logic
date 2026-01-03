@@ -1,12 +1,13 @@
+@if (showDialog()) {
 <app-game-dialog
-  *ngIf="showDialog()"
   [title]="dialogData().title"
   [message]="dialogData().message"
   [buttonText]="dialogData().buttonText"
   [confirm]="confirm()"
   [showCancel]="showCancel()"
   (close)="onDialogClose($event)"
-></app-game-dialog>
+/>
+}
 
 <main
   class="h-screen w-full bg-blue-300 flex flex-col items-center justify-between p-6 font-sans overflow-hidden"
