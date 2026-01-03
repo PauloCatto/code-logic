@@ -56,9 +56,14 @@ export class Avatar implements OnInit {
 
     this.loading.start();
 
+    // setTimeout(() => {
+    //   this.router.navigate(['/login'], {
+    //     queryParams: { from: 'avatar' },
+    //   });
+    // }, 600);
+
     setTimeout(() => {
-      this.router.navigate(['/login'], {
-        queryParams: { from: 'avatar' },
+      this.router.navigate(['/map'], {
       });
     }, 600);
   }
