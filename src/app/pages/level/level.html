@@ -1,4 +1,4 @@
-<main class="h-screen w-full bg-slate-950 flex flex-col overflow-hidden font-sans text-slate-200">
+<main class="min-h-screen w-full bg-slate-950 flex flex-col font-sans text-slate-200">
   <header
     class="p-4 bg-slate-900 border-b-2 border-indigo-500/30 flex justify-between items-center z-50"
   >
@@ -26,23 +26,23 @@
 
     <button
       (click)="resetGame()"
-      class="bg-rose-500/20 hover:bg-rose-500 text-rose-500 hover:text-white px-4 py-2 rounded-lg font-bold text-xs"
+      class="bg-rose-500/20 hover:bg-rose-500 text-rose-500 hover:text-white px-4 py-2 rounded-lg font-bold text-xs transition"
     >
       RESET
     </button>
   </header>
 
-  <div class="flex-grow flex flex-col md:flex-row p-6 gap-6 overflow-hidden">
+  <div class="flex-grow flex flex-col md:flex-row p-4 md:p-6 gap-4 md:gap-6 overflow-y-auto">
     <section
       class="flex-[2] flex items-center justify-center bg-slate-900/40 rounded-[3rem] border border-white/5"
     >
       <div
-        class="grid grid-cols-5 gap-2 p-4 bg-slate-800/60 rounded-[2.5rem] border border-white/10"
+        class="grid grid-cols-5 gap-1 sm:gap-2 p-3 sm:p-4 bg-slate-800/60 rounded-[2.5rem] border border-white/10"
       >
         @for (row of mapGrid(); track y; let y = $index) { @for (cell of row; track x; let x =
         $index) {
         <div
-          class="w-14 h-14 md:w-20 md:h-20 rounded-xl flex items-center justify-center text-4xl relative"
+          class="w-12 h-12 sm:w-14 sm:h-14 md:w-20 md:h-20 rounded-xl flex items-center justify-center text-3xl md:text-4xl relative"
           [ngClass]="{
             'bg-slate-700/50': cell === 2,
             'bg-slate-950 opacity-40': cell === 1,
@@ -51,7 +51,9 @@
           }"
         >
           @if (cell === 3) { ⭐ } @if (robotPosition().x === x && robotPosition().y === y) {
-          <div class="scale-150">{{ playerProfile.avatar || '🤖' }}</div>
+          <div class="scale-150">
+            {{ playerProfile.avatar || '🤖' }}
+          </div>
           }
         </div>
         } }
@@ -59,18 +61,17 @@
     </section>
 
     <aside
-      class="flex-1 max-w-sm w-full flex flex-col gap-4 bg-slate-900 p-6 rounded-[2.5rem] border border-white/10"
+      class="flex-1 max-w-sm w-full flex flex-col gap-4 bg-slate-900 p-4 md:p-6 rounded-[2.5rem] border border-white/10"
     >
       <div
         id="blocklyDiv"
-        class="flex-grow rounded-2xl overflow-hidden border border-white/10"
-        style="min-height: 320px"
+        class="flex-grow rounded-2xl overflow-hidden border border-white/10 min-h-[220px] max-h-[45vh] md:max-h-none"
       ></div>
 
       <button
         (click)="runFromBlockly()"
         [disabled]="isRunning()"
-        class="w-full py-5 rounded-2xl bg-indigo-500 hover:bg-indigo-400 text-white font-black text-xl uppercase"
+        class="w-full py-4 md:py-5 rounded-2xl bg-indigo-500 hover:bg-indigo-400 text-white font-black text-lg md:text-xl uppercase sticky bottom-0"
       >
         EXECUTAR
       </button>
@@ -80,8 +81,12 @@
   @if (levelCompleted()) {
   <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
     <div class="bg-slate-900 p-10 rounded-[3rem] text-center">
-      <div class="text-6xl mb-4">{{ playerProfile.avatar || '⭐' }}</div>
+      <div class="text-6xl mb-4">
+        {{ playerProfile.avatar || '⭐' }}
+      </div>
+
       <h2 class="font-black text-3xl mb-6">Boa, {{ playerProfile.name }}!</h2>
+
       <button
         (click)="finish()"
         class="w-full bg-white text-slate-950 py-4 rounded-xl font-black text-xl"
