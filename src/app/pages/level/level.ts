@@ -34,10 +34,16 @@ export class Level implements OnInit, OnDestroy {
 
   private lastDir: 'baixo' | 'direita' | 'esquerda' = 'direita';
   private jumpAllowedLevels: number[] = [2, 4, 5, 6, 7, 8];
+  public isSmallScreen = signal(window.innerWidth < 600);
   private executionIndex: number = 0;
+
+  private checkScreenSize(): void {
+    this.isSmallScreen.set(window.innerWidth < 600);
+  }
 
   ngOnInit(): void {
     this.loading.stop();
+    this.checkScreenSize();
 
     this.routeSub = this.route.params.subscribe((params) => {
       const id = Number(params['id'] || 1);
@@ -54,6 +60,7 @@ export class Level implements OnInit, OnDestroy {
   }
 
   handleResize = () => {
+    this.checkScreenSize();
     if (this.workspace) {
       Blockly.svgResize(this.workspace);
     }
@@ -63,6 +70,8 @@ export class Level implements OnInit, OnDestroy {
     if (this.workspace) this.workspace.dispose();
 
     this.registerBlocks();
+
+    const isMobile = window.innerWidth < 768;
 
     this.workspace = Blockly.inject('blocklyDiv', {
       toolbox: {
@@ -76,24 +85,33 @@ export class Level implements OnInit, OnDestroy {
       },
       trashcan: true,
       scrollbars: true,
-      move: {
-        drag: true,
+      move: { drag: true, wheel: true },
+      horizontalLayout: false,
+      toolboxPosition: 'start',
+      zoom: {
+        controls: false,
         wheel: true,
+        startScale: isMobile ? 0.75 : 1,
       },
+      renderer: 'thrasos',
     });
 
     setTimeout(() => {
       Blockly.svgResize(this.workspace!);
-
       const injectionDiv = this.workspace!.getInjectionDiv() as HTMLElement;
+
       injectionDiv.scrollTop = 0;
+      injectionDiv.scrollLeft = 0;
 
       const hScrollbar = injectionDiv.querySelector('.blocklyScrollbarHorizontal');
-      if (hScrollbar) {
-        (hScrollbar as HTMLElement).style.display = 'none';
-      }
+      if (hScrollbar) (hScrollbar as HTMLElement).style.display = 'none';
 
       this.workspace!.scroll(0, 0);
+
+      if (isMobile) {
+        const workspaceDiv = this.workspace!.getInjectionDiv() as HTMLElement;
+        workspaceDiv.style.paddingBottom = '60px';
+      }
     }, 0);
 
     window.addEventListener('resize', this.handleResize);
