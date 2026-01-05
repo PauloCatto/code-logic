@@ -50,7 +50,14 @@ export class Level implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.routeSub?.unsubscribe();
     this.workspace?.dispose();
+    window.removeEventListener('resize', this.handleResize);
   }
+
+  handleResize = () => {
+    if (this.workspace) {
+      Blockly.svgResize(this.workspace);
+    }
+  };
 
   initBlockly(): void {
     if (this.workspace) this.workspace.dispose();
@@ -68,7 +75,28 @@ export class Level implements OnInit, OnDestroy {
         ],
       },
       trashcan: true,
+      scrollbars: true,
+      move: {
+        drag: true,
+        wheel: true,
+      },
     });
+
+    setTimeout(() => {
+      Blockly.svgResize(this.workspace!);
+
+      const injectionDiv = this.workspace!.getInjectionDiv() as HTMLElement;
+      injectionDiv.scrollTop = 0;
+
+      const hScrollbar = injectionDiv.querySelector('.blocklyScrollbarHorizontal');
+      if (hScrollbar) {
+        (hScrollbar as HTMLElement).style.display = 'none';
+      }
+
+      this.workspace!.scroll(0, 0);
+    }, 0);
+
+    window.addEventListener('resize', this.handleResize);
   }
 
   registerBlocks(): void {

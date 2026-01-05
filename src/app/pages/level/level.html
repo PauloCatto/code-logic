@@ -1,38 +1,43 @@
 <main class="min-h-screen w-full bg-slate-950 flex flex-col font-sans text-slate-200">
-  <header
-    class="p-4 bg-slate-900 border-b-2 border-indigo-500/30 flex justify-between items-center z-50"
-  >
-    <div class="flex items-center gap-4">
-      <button
-        routerLink="/map"
-        class="bg-slate-800 hover:bg-indigo-600 px-4 py-2 rounded-lg text-xs font-black transition-all"
-      >
-        ⬅ MENU
-      </button>
+  <header class="p-3 sm:p-4 bg-slate-900 border-b-2 border-indigo-500/30 z-50">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center justify-between sm:justify-start gap-3">
+        <button
+          routerLink="/map"
+          class="bg-slate-800 hover:bg-indigo-600 px-3 sm:px-4 py-2 rounded-lg text-[10px] sm:text-xs font-black transition-all whitespace-nowrap"
+        >
+          ⬅ MENU
+        </button>
 
-      <div
-        class="flex items-center gap-2 bg-indigo-500/20 px-3 py-1.5 rounded-full border border-indigo-500/30"
+        <div
+          class="flex items-center gap-2 bg-indigo-500/20 px-2 sm:px-3 py-1.5 rounded-full border border-indigo-500/30 shrink-0"
+        >
+          <span class="text-lg sm:text-xl">
+            {{ playerProfile.avatar || '🤖' }}
+          </span>
+          <span class="text-[9px] sm:text-[10px] font-black uppercase max-w-[80px] truncate">
+            {{ playerProfile.name || 'Recruta' }}
+          </span>
+        </div>
+      </div>
+
+      <h2
+        class="text-center font-black italic uppercase tracking-tighter text-lg sm:text-2xl order-last sm:order-none"
       >
-        <span class="text-xl">{{ playerProfile.avatar || '🤖' }}</span>
-        <span class="text-[10px] font-black uppercase">
-          {{ playerProfile.name || 'Recruta' }}
-        </span>
+        Level 0{{ currentLevelId() }}
+      </h2>
+
+      <div class="flex justify-end">
+        <button
+          (click)="resetGame()"
+          class="bg-rose-500/20 hover:bg-rose-500 text-rose-500 hover:text-white px-3 sm:px-4 py-2 rounded-lg font-bold text-[10px] sm:text-xs transition whitespace-nowrap"
+        >
+          RESET
+        </button>
       </div>
     </div>
-
-    <h2 class="font-black text-2xl italic uppercase tracking-tighter">
-      Level 0{{ currentLevelId() }}
-    </h2>
-
-    <button
-      (click)="resetGame()"
-      class="bg-rose-500/20 hover:bg-rose-500 text-rose-500 hover:text-white px-4 py-2 rounded-lg font-bold text-xs transition"
-    >
-      RESET
-    </button>
   </header>
-
-  <div class="flex-grow flex flex-col md:flex-row p-4 md:p-6 gap-4 md:gap-6 overflow-y-auto">
+  <div class="flex-grow flex flex-col lg:flex-row p-4 lg:p-6 gap-4 lg:gap-6">
     <section
       class="flex-[2] flex items-center justify-center bg-slate-900/40 rounded-[3rem] border border-white/5"
     >
@@ -61,17 +66,17 @@
     </section>
 
     <aside
-      class="flex-1 max-w-sm w-full flex flex-col gap-4 bg-slate-900 p-4 md:p-6 rounded-[2.5rem] border border-white/10"
+      class="w-full lg:max-w-sm flex flex-col gap-4 bg-slate-900 p-4 lg:p-6 rounded-[2.5rem] border border-white/10"
     >
       <div
         id="blocklyDiv"
-        class="flex-grow rounded-2xl overflow-hidden border border-white/10 min-h-[220px] max-h-[45vh] md:max-h-none"
+        class="w-full h-[320px] sm:h-[360px] lg:h-auto lg:flex-grow rounded-2xl overflow-hidden border border-white/10 bg-white"
       ></div>
 
       <button
         (click)="runFromBlockly()"
         [disabled]="isRunning()"
-        class="w-full py-4 md:py-5 rounded-2xl bg-indigo-500 hover:bg-indigo-400 text-white font-black text-lg md:text-xl uppercase sticky bottom-0"
+        class="w-full py-4 lg:py-5 rounded-2xl bg-indigo-500 hover:bg-indigo-400 text-white font-black text-lg lg:text-xl uppercase"
       >
         EXECUTAR
       </button>
@@ -97,3 +102,4 @@
   </div>
   }
 </main>
+ 
