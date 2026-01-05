@@ -48,7 +48,7 @@ export class Map implements OnInit {
     this.updateProgress();
   }
 
-  private updateProgress(): void {
+  updateProgress(): void {
     const savedLevel = localStorage.getItem('unlockedLevel');
     const currentUnlockedLevel = savedLevel ? Number(savedLevel) : 1;
 
@@ -67,6 +67,18 @@ export class Map implements OnInit {
         status: currentStatus,
       };
     });
+
+    if (currentUnlockedLevel > 8) {
+      this.dialogData.set({
+        title: 'Parabéns! 🎉',
+        message: 'Você conseguiu. Missão cumprida.',
+        buttonText: 'Voltar ao início',
+      });
+
+      this.confirm.set(true);
+      this.showCancel.set(false);
+      this.showDialog.set(true);
+    }
   }
 
   navigateToLevel(levelId: number, isAvailable: boolean): void {
