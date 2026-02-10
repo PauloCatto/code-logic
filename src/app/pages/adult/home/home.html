@@ -1,1 +1,61 @@
-<p>home works!</p>
+<div class="adult-container">
+  <app-game-dialog *ngIf="showDialog()" [title]="'Parabéns!'"
+    [message]="'Você completou os desafios. Pontuação final: ' + score()" [buttonText]="'Menu Principal'"
+    (close)="closeDialog()"></app-game-dialog>
+  <div class="content-wrapper">
+    <header>
+      <div class="user-info">
+        <div class="avatar-circle">🧠</div>
+        <div class="user-details">
+          <span class="name">{{ user()?.name }}</span>
+          <span class="level-badge">Nível {{ user()?.level }}</span>
+        </div>
+      </div>
+
+      <div class="game-stats">
+        <span class="score">XP: {{ score() }}</span>
+      </div>
+    </header>
+
+    <div class="challenge-card" *ngIf="currentChallenge() as challenge">
+      <div class="challenge-header">
+        <span class="topic-badge">{{ challenge.topic }}</span>
+        <h2>{{ challenge.title }}</h2>
+      </div>
+
+      <p class="description">{{ challenge.description }}</p>
+
+      <div class="code-block" *ngIf="challenge.codeSnippet">
+        <pre><code>{{ challenge.codeSnippet }}</code></pre>
+      </div>
+
+      <div class="options-grid">
+        <button *ngFor="let option of challenge.options; let i = index" class="option-btn" [ngClass]="{
+            'selected': selectedOption() === i,
+            'correct': isAnswered() && i === challenge.correctAnswer,
+            'incorrect': isAnswered() && selectedOption() === i && i !== challenge.correctAnswer
+          }" (click)="selectOption(i)" [disabled]="isAnswered()">
+          {{ option }}
+        </button>
+      </div>
+
+      <div class="actions">
+        <button class="submit-btn" *ngIf="!isAnswered()" (click)="submitAnswer()"
+          [disabled]="selectedOption() === null">
+          Confirmar Resposta
+        </button>
+
+        <div class="feedback" *ngIf="isAnswered()">
+          <div class="result-container">
+            <div class="result-message" [class.success]="isCorrect()" [class.error]="!isCorrect()">
+              <span>{{ isCorrect() ? '✅' : '❌' }}</span>
+              {{ isCorrect() ? 'Correto!' : 'Incorreto.' }}
+            </div>
+            <p class="explanation">{{ challenge.explanation }}</p>
+          </div>
+          <button class="next-btn" (click)="nextChallenge()">Próximo Desafio ➡</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
