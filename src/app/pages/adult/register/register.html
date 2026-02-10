@@ -1,0 +1,40 @@
+<div class="register-container">
+    <div class="form-card">
+        <header>
+            <h1>Criar Conta</h1>
+            <p>Junte-se ao modo adulto e desafie sua lógica</p>
+        </header>
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+            <div class="form-group">
+                <label for="name">Nome</label>
+                <input id="name" type="text" formControlName="name" placeholder="Seu nome"
+                    [class.error]="form.get('name')?.invalid && form.get('name')?.touched">
+            </div>
+
+            <div class="form-group">
+                <label for="email">E-mail</label>
+                <input id="email" type="email" formControlName="email" placeholder="seu@email.com"
+                    [class.error]="form.get('email')?.invalid && form.get('email')?.touched">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <input id="password" type="password" formControlName="password" placeholder="Mínimo 6 caracteres"
+                    [class.error]="form.get('password')?.invalid && form.get('password')?.touched">
+            </div>
+
+            <div class="error-message" *ngIf="errorMessage()">
+                {{ errorMessage() }}
+            </div>
+
+            <button type="submit" [disabled]="form.invalid || isLoading()">
+                {{ isLoading() ? 'Criando...' : 'Cadastrar' }}
+            </button>
+
+            <div class="footer">
+                Já tem uma conta? <a (click)="navigateToLogin()">Entrar</a>
+            </div>
+        </form>
+    </div>
+</div>
