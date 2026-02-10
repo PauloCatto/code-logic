@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ProfileService } from '../../core/services/profile';
+import { AuthService } from '../../core/services/auth';
 import { LoadingService } from '../../core/services/loading';
 
 @Component({
@@ -10,10 +11,12 @@ import { LoadingService } from '../../core/services/loading';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './login.html',
+  styleUrl: './login.scss',
 })
 export class Login implements OnInit {
   private router = inject(Router);
   private profile = inject(ProfileService);
+  private auth = inject(AuthService); // Inject AuthService
   private loadingService = inject(LoadingService);
   private fb = inject(FormBuilder);
 
@@ -23,6 +26,7 @@ export class Login implements OnInit {
   });
 
   loading = signal(false);
+  errorMessage = signal('');
 
   ngOnInit(): void {
     this.loadingService.stop();
@@ -57,14 +61,25 @@ export class Login implements OnInit {
   }
 
   private finishLogin(): void {
-    this.loading.set(false);
-    this.loadingService.stop();
+    this.errorMessage.set('');
 
-    this.profile.setProfile({
-      name: this.email.value || 'Adult Player',
-      avatar: '🧠',
+    const { email, password } = this.loginForm.getRawValue();
+
+    this.auth.login(email!, password!).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.loadingService.stop();
+        this.router.navigate(['/adult']);
+      },
+      error: (err) => {
+        this.loading.set(false);
+        this.loadingService.stop();
+        this.errorMessage.set(err.message || 'Erro ao entrar');
+      }
     });
+  }
 
-    this.router.navigate(['/adult-home']);
+  navigateToRegister(): void {
+    this.router.navigate(['/register']);
   }
 }
