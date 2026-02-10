@@ -1,100 +1,126 @@
-<main class="min-h-screen w-full bg-slate-950 flex flex-col font-sans text-slate-200">
-  <header class="px-3 py-2 sm:p-4 bg-slate-900 border-b border-indigo-500/30 z-50">
-    <div class="flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2 min-w-0">
-        <button
-          routerLink="/map"
-          class="bg-slate-800 hover:bg-indigo-600 px-3 py-1.5 rounded-lg text-[10px] font-black transition-all whitespace-nowrap"
-        >
-          ⬅ MENU
+<main class="min-h-screen w-full flex flex-col font-sans text-slate-100 overflow-hidden relative">
+  <!-- Background Decorations -->
+  <div
+    class="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-600/20 blur-[100px] pointer-events-none">
+  </div>
+  <div
+    class="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-fuchsia-600/20 blur-[100px] pointer-events-none">
+  </div>
+
+  <header
+    class="px-4 py-3 sm:py-4 glass-panel border-b border-white/10 z-50 mb-4 sm:mb-6 rounded-b-3xl mx-2 sm:mx-4 mt-2">
+    <div class="flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <button routerLink="/map"
+          class="glass-button px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 text-indigo-200 hover:text-white">
+          <span>⬅</span> MAPA
         </button>
 
-        <div
-          class="flex items-center gap-2 bg-indigo-500/20 px-2 py-1 rounded-full border border-indigo-500/30 min-w-0"
-        >
-          <span class="text-base">
+        <div class="glass-panel px-3 py-1.5 rounded-full flex items-center gap-3 min-w-[140px]">
+          <span class="text-2xl filter drop-shadow-lg">
             {{ playerProfile.avatar || '🤖' }}
           </span>
-          <span class="text-[9px] font-black uppercase truncate max-w-[70px]">
-            {{ playerProfile.name || 'Recruta' }}
-          </span>
+          <div class="flex flex-col">
+            <span class="text-[10px] uppercase tracking-wider text-indigo-300 font-bold">Jogador</span>
+            <span class="text-sm font-black truncate max-w-[100px] leading-tight">
+              {{ playerProfile.name || 'Recruta' }}
+            </span>
+          </div>
         </div>
       </div>
 
-      <h2 class="font-black uppercase tracking-tight text-sm sm:text-xl">
-        L{{ currentLevelId() }}
-      </h2>
+      <div class="flex flex-col items-center">
+        <span class="text-[10px] uppercase tracking-widest text-indigo-300 font-bold">Nível</span>
+        <h2
+          class="font-black text-2xl sm:text-3xl leading-none bg-gradient-to-r from-indigo-400 to-fuchsia-400 bg-clip-text text-transparent">
+          {{ currentLevelId() }}
+        </h2>
+      </div>
 
-      <button
-        (click)="resetGame()"
-        class="bg-rose-500/20 hover:bg-rose-500 text-rose-500 hover:text-white px-3 py-1.5 rounded-lg font-bold text-[10px] transition whitespace-nowrap"
-      >
-        RESET
+      <button (click)="resetGame()"
+        class="glass-button px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-rose-300 hover:text-rose-100 flex items-center gap-2 hover:bg-rose-500/20">
+        <span>↺</span> REINICIAR
       </button>
     </div>
   </header>
 
-  <div class="flex-grow flex flex-col lg:flex-row p-4 lg:p-6 gap-4 lg:gap-6">
+  <div class="flex-grow flex flex-col lg:flex-row px-4 pb-4 gap-6 max-w-7xl mx-auto w-full">
+    <!-- Game Board Section -->
     <section
-      class="flex items-center justify-center bg-slate-900/40 rounded-[3rem] border border-white/5"
-      [ngClass]="{ 'flex-[2]': !isSmallScreen(), 'p-2': isSmallScreen() }"
-    >
-      <div
-        class="grid grid-cols-5 gap-1 sm:gap-2 p-3 sm:p-4 bg-slate-800/60 rounded-[2.5rem] border border-white/10"
-      >
-        @for (row of mapGrid(); track y; let y = $index) { @for (cell of row; track x; let x =
-        $index) {
+      class="flex-1 glass-panel rounded-[2rem] p-2 sm:p-6 flex items-center justify-center relative overflow-hidden group">
+      <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-fuchsia-500/5 pointer-events-none"></div>
+
+      <div class="grid gap-2 p-4 relative z-10"
+        [style.grid-template-columns]="'repeat(' + mapGrid()[0]?.length + ', minmax(0, 1fr))'">
+        @for (row of mapGrid(); track y; let y = $index) {
+        @for (cell of row; track x; let x = $index) {
         <div
-          class="w-12 h-12 sm:w-14 sm:h-14 md:w-20 md:h-20 rounded-xl flex items-center justify-center text-3xl md:text-4xl relative"
+          class="grid-cell w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-xl flex items-center justify-center relative"
           [ngClass]="{
-            'bg-slate-700/50': cell === 2,
-            'bg-slate-950 opacity-40': cell === 1,
-            'bg-amber-400 animate-pulse': cell === 3,
-            'bg-transparent border border-dashed border-rose-500/30': cell === 0
-          }"
-        >
-          @if (cell === 3) { ⭐ } @if (robotPosition().x === x && robotPosition().y === y) {
-          <div class="scale-150">
+                'path': cell === 2,
+                'wall': cell === 1,
+                'start': cell === 0,
+                'goal': cell === 3
+              }">
+          @if (cell === 3) {
+          <span class="text-2xl sm:text-4xl filter drop-shadow-lg animate-pulse">⭐</span>
+          }
+
+          @if (robotPosition().x === x && robotPosition().y === y) {
+          <div
+            class="robot-avatar absolute inset-0 flex items-center justify-center text-3xl sm:text-5xl transition-all duration-300 z-20">
             {{ playerProfile.avatar || '🤖' }}
           </div>
           }
         </div>
-        } }
+        }
+        }
       </div>
     </section>
 
-    <aside
-      class="w-full lg:max-w-sm flex flex-col gap-4 bg-slate-900 p-4 lg:p-6 rounded-[2.5rem] border border-white/10"
-    >
-      <div
-        id="blocklyDiv"
-        class="relative w-full h-[320px] sm:h-[360px] lg:h-auto lg:flex-grow rounded-2xl overflow-hidden border border-white/10 bg-white"
-      ></div>
+    <!-- Controls Section -->
+    <aside class="w-full lg:w-[400px] flex flex-col gap-4">
+      <div class="glass-panel rounded-[2rem] p-4 flex-grow flex flex-col relative overflow-hidden">
+        <div id="blocklyDiv"
+          class="w-full flex-grow min-h-[400px] rounded-xl overflow-hidden bg-slate-900/50 border border-white/5"></div>
+      </div>
 
-      <button
-        (click)="runFromBlockly()"
-        [disabled]="isRunning()"
-        class="w-full py-4 lg:py-5 rounded-2xl bg-indigo-500 hover:bg-indigo-400 text-white font-black text-lg lg:text-xl uppercase"
-      >
-        EXECUTAR
+      <button (click)="runFromBlockly()" [disabled]="isRunning()"
+        class="glass-button w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-black text-xl tracking-widest uppercase shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed group relative overflow-hidden">
+        <div
+          class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+        </div>
+        <span class="relative z-10 flex items-center justify-center gap-2">
+          {{ isRunning() ? 'Executando...' : 'Executar Código' }}
+          <span *ngIf="!isRunning()">🚀</span>
+        </span>
       </button>
     </aside>
   </div>
 
+  <!-- Success Modal -->
   @if (levelCompleted()) {
-  <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-    <div class="bg-slate-900 p-10 rounded-[3rem] text-center">
-      <div class="text-6xl mb-4">
+  <div
+    class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+    <div class="glass-panel p-8 sm:p-12 rounded-[3rem] text-center max-w-md w-full relative overflow-hidden">
+      <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-emerald-500"></div>
+
+      <div class="text-8xl mb-6 animate-bounce">
         {{ playerProfile.avatar || '⭐' }}
       </div>
 
-      <h2 class="font-black text-3xl mb-6">Boa, {{ playerProfile.name }}!</h2>
+      <h2
+        class="font-black text-3xl sm:text-4xl mb-4 bg-gradient-to-r from-green-300 to-emerald-300 bg-clip-text text-transparent">
+        Nível Completado!
+      </h2>
 
-      <button
-        (click)="finish()"
-        class="w-full bg-white text-slate-950 py-4 rounded-xl font-black text-xl"
-      >
-        Próximo 🚀
+      <p class="text-slate-300 mb-8 text-lg">
+        Excelente trabalho, {{ playerProfile.name }}!
+      </p>
+
+      <button (click)="finish()"
+        class="glass-button w-full bg-white/10 hover:bg-white/20 text-white py-4 rounded-2xl font-black text-xl flex items-center justify-center gap-2">
+        Próximo Nível ➡
       </button>
     </div>
   </div>

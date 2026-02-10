@@ -14,6 +14,7 @@ import { Position } from '../../models/level.model';
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './level.html',
+  styleUrl: './level.scss',
 })
 export class Level implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
@@ -32,8 +33,8 @@ export class Level implements OnInit, OnDestroy {
   isRunning = signal(false);
   levelCompleted = signal(false);
 
-  private lastDir: 'baixo' | 'direita' | 'esquerda' = 'direita';
-  private jumpAllowedLevels: number[] = [2, 4, 5, 6, 7, 8];
+  private lastDir: 'baixo' | 'direita' | 'esquerda' | 'cima' = 'direita';
+  private jumpAllowedLevels: number[] = [2, 4, 5, 6, 7, 8, 9, 10];
   public isSmallScreen = signal(window.innerWidth < 600);
   private executionIndex: number = 0;
 
@@ -73,15 +74,24 @@ export class Level implements OnInit, OnDestroy {
 
     const isMobile = window.innerWidth < 768;
 
+    const hasLoops = this.currentLevelId() >= 3;
+
+    const toolboxContents: any[] = [
+      { kind: 'block', type: 'baixo' },
+      { kind: 'block', type: 'direita' },
+      { kind: 'block', type: 'esquerda' },
+      { kind: 'block', type: 'cima' },
+      { kind: 'block', type: 'pular' },
+    ];
+
+    if (hasLoops) {
+      toolboxContents.push({ kind: 'block', type: 'controls_repeat_ext', inputs: { 'TIMES': { shadow: { type: 'math_number', fields: { 'NUM': 3 } } } } });
+    }
+
     this.workspace = Blockly.inject('blocklyDiv', {
       toolbox: {
         kind: 'flyoutToolbox',
-        contents: [
-          { kind: 'block', type: 'baixo' },
-          { kind: 'block', type: 'direita' },
-          { kind: 'block', type: 'esquerda' },
-          { kind: 'block', type: 'pular' },
-        ],
+        contents: toolboxContents,
       },
       trashcan: true,
       scrollbars: true,
@@ -91,28 +101,25 @@ export class Level implements OnInit, OnDestroy {
       zoom: {
         controls: false,
         wheel: true,
-        startScale: isMobile ? 0.75 : 1,
+        startScale: isMobile ? 0.75 : 0.9,
       },
-      renderer: 'thrasos',
+      renderer: 'geras',
+      theme: {
+        'name': 'kids-theme',
+        'base': Blockly.Themes.Classic,
+        'componentStyles': {
+          'workspaceBackgroundColour': '#1e293b',
+          'toolboxBackgroundColour': '#0f172a',
+          'flyoutBackgroundColour': '#0f172a',
+          'flyoutOpacity': 0.8
+        }
+      }
     });
 
     setTimeout(() => {
       Blockly.svgResize(this.workspace!);
-      const injectionDiv = this.workspace!.getInjectionDiv() as HTMLElement;
-
-      injectionDiv.scrollTop = 0;
-      injectionDiv.scrollLeft = 0;
-
-      const hScrollbar = injectionDiv.querySelector('.blocklyScrollbarHorizontal');
-      if (hScrollbar) (hScrollbar as HTMLElement).style.display = 'none';
-
       this.workspace!.scroll(0, 0);
-
-      if (isMobile) {
-        const workspaceDiv = this.workspace!.getInjectionDiv() as HTMLElement;
-        workspaceDiv.style.paddingBottom = '60px';
-      }
-    }, 0);
+    }, 100);
 
     window.addEventListener('resize', this.handleResize);
   }
@@ -129,38 +136,63 @@ export class Level implements OnInit, OnDestroy {
       };
     };
 
-    create('baixo', '⬇ descer', 180);
-    create('direita', '➡ direita', 200);
-    create('esquerda', '⬅ esquerda', 160);
-    create('pular', '⤴ pular', 260);
+    create('baixo', '⬇ descer', 210);
+    create('direita', '➡ direita', 230);
+    create('esquerda', '⬅ esquerda', 230);
+    create('cima', '⬆ subir', 210);
+    create('pular', '⤴ pular', 290);
   }
 
   runFromBlockly(): void {
     if (!this.workspace || this.isRunning()) return;
 
-    const commands: string[] = [];
-
     const topBlocks = this.workspace.getTopBlocks(true);
     if (!topBlocks.length) return;
 
-    let block: Blockly.Block | null = topBlocks[0];
-
-    while (block) {
-      commands.push(block.type);
-      block = block.getNextBlock();
-    }
+    const startBlock = topBlocks[0];
+    const commands = this.parseBlocks(startBlock);
 
     this.runSequence(commands);
   }
 
+  parseBlocks(block: Blockly.Block | null): string[] {
+    const commands: string[] = [];
+
+    while (block) {
+      if (block.type === 'controls_repeat_ext') {
+        const timesInput = block.getInput('TIMES');
+        let times = 1;
+
+        const targetBlock = timesInput?.connection?.targetBlock();
+        if (targetBlock && targetBlock.type === 'math_number') {
+          times = Number(targetBlock.getFieldValue('NUM'));
+        }
+
+        const branchBlock = block.getInputTargetBlock('DO');
+        const loopCommands = this.parseBlocks(branchBlock);
+
+        for (let i = 0; i < times; i++) {
+          commands.push(...loopCommands);
+        }
+      } else {
+        commands.push(block.type);
+      }
+      block = block.getNextBlock();
+    }
+    return commands;
+  }
+
   async runSequence(commands: string[]): Promise<void> {
-    if (this.executionIndex >= commands.length) return;
+    if (this.executionIndex >= commands.length) {
+      this.executionIndex = 0;
+    }
 
     this.isRunning.set(true);
+    this.levelCompleted.set(false);
 
     let { x, y } = this.robotPosition();
 
-    for (let i = this.executionIndex; i < commands.length; i++) {
+    for (let i = 0; i < commands.length; i++) {
       const cmd = commands[i];
 
       if (cmd === 'pular') {
@@ -175,6 +207,7 @@ export class Level implements OnInit, OnDestroy {
 
         for (let step = 0; step < 2; step++) {
           if (this.lastDir === 'baixo') ny++;
+          else if (this.lastDir === 'cima') ny--;
           else if (this.lastDir === 'direita') nx++;
           else if (this.lastDir === 'esquerda') nx--;
         }
@@ -184,39 +217,28 @@ export class Level implements OnInit, OnDestroy {
           this.resetGame();
           return;
         }
-
-        x = nx;
-        y = ny;
+        x = nx; y = ny;
         this.robotPosition.set({ x, y });
         await this.delay(400);
+
       } else {
         let nx = x;
         let ny = y;
 
-        if (cmd === 'baixo') {
-          ny++;
-          this.lastDir = 'baixo';
-        } else if (cmd === 'direita') {
-          nx++;
-          this.lastDir = 'direita';
-        } else if (cmd === 'esquerda') {
-          nx--;
-          this.lastDir = 'esquerda';
-        }
+        if (cmd === 'baixo') { ny++; this.lastDir = 'baixo'; }
+        else if (cmd === 'cima') { ny--; this.lastDir = 'cima'; }
+        else if (cmd === 'direita') { nx++; this.lastDir = 'direita'; }
+        else if (cmd === 'esquerda') { nx--; this.lastDir = 'esquerda'; }
 
         if (!this.isWalkable(nx, ny)) {
           await this.feedback.showError();
           this.resetGame();
           return;
         }
-
-        x = nx;
-        y = ny;
+        x = nx; y = ny;
         this.robotPosition.set({ x, y });
-        await this.delay(600);
+        await this.delay(500);
       }
-
-      this.executionIndex++;
 
       if (this.mapGrid()[y][x] === 3) {
         this.levelCompleted.set(true);
@@ -258,7 +280,12 @@ export class Level implements OnInit, OnDestroy {
       return;
     }
 
-    this.router.navigate(['/map']);
+    if (id >= 10) {
+      this.router.navigate(['/map']);
+      return;
+    }
+
+    this.router.navigate(['/level', id + 1]);
   }
 
   loadLevelData(id: number): void {
@@ -294,33 +321,48 @@ export class Level implements OnInit, OnDestroy {
       5: [
         [2, 0, 2, 2, 2],
         [2, 0, 0, 0, 2],
-        [2, 2, 2, 0, 2],
+        [2, 2, 2, 1, 2],
         [0, 0, 2, 0, 2],
         [2, 2, 2, 2, 3],
       ],
       6: [
         [2, 2, 0, 2, 2],
-        [0, 2, 0, 0, 2],
-        [2, 2, 2, 0, 2],
-        [2, 0, 0, 0, 2],
+        [1, 2, 1, 2, 1],
+        [2, 2, 2, 1, 2],
+        [2, 1, 1, 1, 2],
         [2, 2, 2, 2, 3],
       ],
       7: [
-        [2, 2, 0, 2, 2],
-        [0, 2, 2, 2, 0],
-        [2, 0, 2, 0, 2],
-        [2, 2, 2, 2, 2],
-        [0, 0, 2, 0, 3],
+        [2, 2, 1, 2, 2],
+        [1, 2, 1, 2, 1],
+        [1, 2, 2, 2, 1],
+        [1, 2, 1, 2, 1],
+        [1, 2, 1, 2, 3],
       ],
       8: [
-        [2, 2, 0, 2, 2],
-        [2, 0, 2, 0, 2],
-        [2, 2, 2, 2, 0],
-        [0, 2, 0, 2, 2],
-        [2, 0, 2, 0, 3],
+        [2, 2, 2, 2, 2],
+        [2, 1, 1, 1, 2],
+        [2, 1, 1, 1, 2],
+        [2, 1, 1, 1, 2],
+        [2, 2, 2, 2, 3],
       ],
+      9: [
+        [2, 2, 1, 2, 2],
+        [1, 2, 1, 2, 1],
+        [1, 2, 2, 2, 1],
+        [1, 2, 1, 2, 1],
+        [1, 2, 2, 2, 3],
+      ],
+      10: [
+        [2, 2, 2, 2, 2],
+        [2, 1, 1, 1, 2],
+        [2, 1, 3, 1, 2],
+        [2, 1, 2, 2, 2],
+        [2, 2, 2, 1, 1],
+      ]
     };
 
-    this.mapGrid.set(levels[id] || levels[1]);
+    const grid = levels[id] || levels[1];
+    this.mapGrid.set(grid);
   }
 }

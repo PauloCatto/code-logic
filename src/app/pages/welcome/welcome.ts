@@ -49,7 +49,7 @@ export class Welcome {
   }
 
   enterAdultMode(): void {
-    this.router.navigate(['/login']);
+    this.router.navigate(['/adult-welcome']);
   }
 
   onDialogClose(): void {

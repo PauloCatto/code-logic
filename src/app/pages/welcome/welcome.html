@@ -1,17 +1,11 @@
-<app-game-dialog
-  *ngIf="showDialog()"
-  [title]="dialogData().title"
-  [message]="dialogData().message"
-  [buttonText]="dialogData().buttonText"
-  (close)="onDialogClose()"
-></app-game-dialog>
+<app-game-dialog *ngIf="showDialog()" [title]="dialogData().title" [message]="dialogData().message"
+  [buttonText]="dialogData().buttonText" (close)="onDialogClose()"></app-game-dialog>
 
 <main
-  class="min-h-screen w-full bg-slate-950 text-white flex items-center justify-center font-sans relative overflow-hidden"
->
+  class="min-h-screen w-full bg-slate-950 text-white flex items-center justify-center font-sans relative overflow-hidden">
   <div
-    class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:40px_40px]"
-  ></div>
+    class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:40px_40px]">
+  </div>
 
   <section class="relative z-10 w-full max-w-4xl px-4 sm:px-6 flex flex-col items-center">
     <header class="mb-8 sm:mb-14 text-center">
@@ -25,10 +19,8 @@
     </header>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 w-full">
-      <button
-        (click)="enterKidsMode()"
-        class="group bg-emerald-600 hover:bg-emerald-500 transition-all rounded-2xl sm:rounded-3xl p-5 sm:p-8 flex flex-col items-center text-center shadow-2xl border-4 border-emerald-800 hover:scale-[1.02]"
-      >
+      <button (click)="enterKidsMode()"
+        class="group bg-emerald-600 hover:bg-emerald-500 transition-all rounded-2xl sm:rounded-3xl p-5 sm:p-8 flex flex-col items-center text-center shadow-2xl border-4 border-emerald-800 hover:scale-[1.02]">
         <div class="text-5xl sm:text-7xl mb-3 sm:mb-4 transition-transform group-hover:scale-110">
           🤖
         </div>
@@ -42,17 +34,13 @@
         </p>
 
         <div
-          class="mt-auto bg-black/30 px-4 sm:px-6 py-2 sm:py-3 rounded-full font-bold uppercase text-xs sm:text-sm tracking-wider"
-        >
+          class="mt-auto bg-black/30 px-4 sm:px-6 py-2 sm:py-3 rounded-full font-bold uppercase text-xs sm:text-sm tracking-wider">
           Jogar Agora
         </div>
       </button>
 
-      <button
-        disabled
-        (click)="enterAdultMode()"
-        class="group bg-indigo-600 hover:bg-indigo-500 transition-all rounded-2xl sm:rounded-3xl p-5 sm:p-8 flex flex-col items-center text-center shadow-2xl border-4 border-indigo-800 hover:scale-[1.02] opacity-40 cursor-not-allowed"
-      >
+      <button (click)="enterAdultMode()"
+        class="group bg-indigo-600 hover:bg-indigo-500 transition-all rounded-2xl sm:rounded-3xl p-5 sm:p-8 flex flex-col items-center text-center shadow-2xl border-4 border-indigo-800 hover:scale-[1.02]">
         <div class="text-5xl sm:text-7xl mb-3 sm:mb-4 transition-transform group-hover:scale-110">
           🧠
         </div>
@@ -66,8 +54,7 @@
         </p>
 
         <div
-          class="mt-auto bg-black/30 px-4 sm:px-6 py-2 sm:py-3 rounded-full font-bold uppercase text-xs sm:text-sm tracking-wider"
-        >
+          class="mt-auto bg-black/30 px-4 sm:px-6 py-2 sm:py-3 rounded-full font-bold uppercase text-xs sm:text-sm tracking-wider">
           Acessar Painel
         </div>
       </button>
