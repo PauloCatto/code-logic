@@ -1,15 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { ProfileService } from '../services/profile';
+import { AuthService } from '../services/auth';
 
 export const adultGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
-  const profile = inject(ProfileService);
+  const auth = inject(AuthService); // Use AuthService
 
-  if (profile.isAdult()) {
+  if (auth.isAuthenticated()) {
     return true;
   } else {
-    router.navigate(['/welcome']);
+    router.navigate(['/adult-welcome']); // Redirect to welcome first
     return false;
   }
 };
