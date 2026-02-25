@@ -16,7 +16,7 @@ import { LoadingService } from '../../core/services/loading';
 export class Login implements OnInit {
   private router = inject(Router);
   private profile = inject(ProfileService);
-  private auth = inject(AuthService); // Inject AuthService
+  private auth = inject(AuthService);
   private loadingService = inject(LoadingService);
   private fb = inject(FormBuilder);
 

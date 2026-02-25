@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { LoadingService } from '../../core/services/loading';
+import { ProfileService } from '../../core/services/profile';
 import { Level } from '../../models/level.model';
 import { GameDialog } from '../../components/game-dialog/game-dialog';
 
@@ -15,6 +16,7 @@ import { GameDialog } from '../../components/game-dialog/game-dialog';
 export class Map implements OnInit {
   private router = inject(Router);
   private loadingService = inject(LoadingService);
+  private profileService = inject(ProfileService);
 
   public levels: Level[] = [];
 
@@ -28,44 +30,52 @@ export class Map implements OnInit {
     buttonText: 'Sim',
   });
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.loadingService.stop();
-    this.resetLevels();
+    await this.buildLevels();
   }
 
-  private resetLevels(): void {
-    this.levels = [
-      { id: 1, unlocked: true, top: '75%', left: '15%', status: 'unlocked' },
-      { id: 2, unlocked: false, top: '55%', left: '25%', status: 'locked' },
-      { id: 3, unlocked: false, top: '40%', left: '35%', status: 'locked' },
-      { id: 4, unlocked: false, top: '55%', left: '45%', status: 'locked' },
-      { id: 5, unlocked: false, top: '70%', left: '55%', status: 'locked' },
-      { id: 6, unlocked: false, top: '45%', left: '65%', status: 'locked' },
-      { id: 7, unlocked: false, top: '30%', left: '75%', status: 'locked' },
-      { id: 8, unlocked: false, top: '45%', left: '85%', status: 'locked' },
+  private async buildLevels(): Promise<void> {
+    let unlockedLevel = 1;
+
+    const profile = this.profileService.levels();
+    const unlockedFromProfile = profile.find(
+      (l) => l.status === 'unlocked' || l.status === 'completed'
+    );
+
+    if (unlockedFromProfile) {
+      const completed = profile.filter((l) => l.status === 'completed');
+      unlockedLevel = completed.length > 0 ? Math.max(...completed.map((l) => l.id)) + 1 : 1;
+    }
+
+    const saved = localStorage.getItem('unlockedLevel');
+    if (saved) {
+      unlockedLevel = Math.max(unlockedLevel, Number(saved));
+    }
+
+    this.resetLevels(unlockedLevel);
+  }
+
+  private resetLevels(currentUnlockedLevel: number): void {
+    const positions = [
+      { top: '75%', left: '15%' },
+      { top: '55%', left: '25%' },
+      { top: '40%', left: '35%' },
+      { top: '55%', left: '45%' },
+      { top: '70%', left: '55%' },
+      { top: '45%', left: '65%' },
+      { top: '30%', left: '75%' },
+      { top: '45%', left: '85%' },
     ];
 
-    this.updateProgress();
-  }
+    this.levels = positions.map((pos, index) => {
+      const id = index + 1;
+      let status: 'locked' | 'unlocked' | 'completed' = 'locked';
 
-  updateProgress(): void {
-    const savedLevel = localStorage.getItem('unlockedLevel');
-    const currentUnlockedLevel = savedLevel ? Number(savedLevel) : 1;
+      if (id < currentUnlockedLevel) status = 'completed';
+      else if (id === currentUnlockedLevel) status = 'unlocked';
 
-    this.levels = this.levels.map((level) => {
-      let currentStatus: 'locked' | 'unlocked' | 'completed' = 'locked';
-
-      if (level.id < currentUnlockedLevel) {
-        currentStatus = 'completed';
-      } else if (level.id === currentUnlockedLevel) {
-        currentStatus = 'unlocked';
-      }
-
-      return {
-        ...level,
-        unlocked: level.id <= currentUnlockedLevel,
-        status: currentStatus,
-      };
+      return { id, unlocked: id <= currentUnlockedLevel, status, ...pos };
     });
 
     if (currentUnlockedLevel > 8) {
@@ -93,7 +103,7 @@ export class Map implements OnInit {
     this.showDialog.set(true);
   }
 
-  onDialogClose(confirmed: boolean): void {
+  async onDialogClose(confirmed: boolean): Promise<void> {
     this.showDialog.set(false);
     this.confirm.set(false);
     this.showCancel.set(false);
@@ -101,10 +111,9 @@ export class Map implements OnInit {
     if (!confirmed) return;
 
     this.loadingService.start();
-    localStorage.removeItem('unlockedLevel');
+    await this.profileService.resetProgress();
 
     setTimeout(() => {
-      // TEMP: full reload until backend/state sync is implemented
       window.location.reload();
     }, 500);
   }
