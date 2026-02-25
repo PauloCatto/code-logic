@@ -7,6 +7,7 @@ import * as Blockly from 'blockly';
 import { FeedbackService } from '../../core/services/feedback';
 import { LoadingService } from '../../core/services/loading';
 import { ProfileService } from '../../core/services/profile';
+import { SupabaseService } from '../../core/services/supabase';
 import { Position } from '../../models/level.model';
 
 @Component({
@@ -22,6 +23,7 @@ export class Level implements OnInit, OnDestroy {
   private feedback = inject(FeedbackService);
   private loading = inject(LoadingService);
   public profileService = inject(ProfileService);
+  private supabase = inject(SupabaseService);
 
   private routeSub?: Subscription;
   private workspace?: Blockly.WorkspaceSvg;
@@ -37,6 +39,7 @@ export class Level implements OnInit, OnDestroy {
   private jumpAllowedLevels: number[] = [2, 4, 5, 6, 7, 8, 9, 10];
   public isSmallScreen = signal(window.innerWidth < 600);
   private executionIndex: number = 0;
+  private lastCommands: string[] = [];
 
   private checkScreenSize(): void {
     this.isSmallScreen.set(window.innerWidth < 600);
@@ -49,6 +52,8 @@ export class Level implements OnInit, OnDestroy {
     this.routeSub = this.route.params.subscribe((params) => {
       const id = Number(params['id'] || 1);
       this.currentLevelId.set(id);
+      this.levelCompleted.set(false);
+      this.resetGame();
       this.loadLevelData(id);
       queueMicrotask(() => this.initBlockly());
     });
@@ -93,8 +98,8 @@ export class Level implements OnInit, OnDestroy {
         kind: 'flyoutToolbox',
         contents: toolboxContents,
       },
-      trashcan: true,
-      scrollbars: true,
+      trashcan: false,
+      scrollbars: false,
       move: { drag: true, wheel: true },
       horizontalLayout: false,
       toolboxPosition: 'start',
@@ -151,7 +156,9 @@ export class Level implements OnInit, OnDestroy {
 
     const startBlock = topBlocks[0];
     const commands = this.parseBlocks(startBlock);
+    this.lastCommands = commands;
 
+    this.resetGame();
     this.runSequence(commands);
   }
 
@@ -199,6 +206,7 @@ export class Level implements OnInit, OnDestroy {
         if (!this.jumpAllowedLevels.includes(this.currentLevelId())) {
           await this.feedback.showError();
           this.resetGame();
+          await this.saveLog(false);
           return;
         }
 
@@ -215,6 +223,7 @@ export class Level implements OnInit, OnDestroy {
         if (!this.isWalkable(nx, ny)) {
           await this.feedback.showError();
           this.resetGame();
+          await this.saveLog(false);
           return;
         }
         x = nx; y = ny;
@@ -233,6 +242,7 @@ export class Level implements OnInit, OnDestroy {
         if (!this.isWalkable(nx, ny)) {
           await this.feedback.showError();
           this.resetGame();
+          await this.saveLog(false);
           return;
         }
         x = nx; y = ny;
@@ -273,7 +283,10 @@ export class Level implements OnInit, OnDestroy {
 
   finish(): void {
     const id = this.currentLevelId();
-    localStorage.setItem('unlockedLevel', String(id + 1));
+
+    this.levelCompleted.set(false);
+    this.profileService.completeLevel(id);
+    this.saveLog(true);
 
     if (id === 1) {
       this.router.navigate(['/avatar']);
@@ -288,7 +301,28 @@ export class Level implements OnInit, OnDestroy {
     this.router.navigate(['/level', id + 1]);
   }
 
-  loadLevelData(id: number): void {
+  private async saveLog(success: boolean): Promise<void> {
+    const userId = this.profileService.childUserId();
+    if (!userId) return;
+
+    await this.supabase.saveGameLog({
+      child_id: userId,
+      level_id: this.currentLevelId(),
+      success,
+      commands_used: this.lastCommands,
+    });
+  }
+
+  async loadLevelData(id: number): Promise<void> {
+    const remote = await this.supabase.getLevelDefinition(id);
+    if (remote) {
+      this.mapGrid.set(remote.grid);
+      if (remote.jump_allowed && !this.jumpAllowedLevels.includes(id)) {
+        this.jumpAllowedLevels = [...this.jumpAllowedLevels, id];
+      }
+      return;
+    }
+
     const levels: Record<number, number[][]> = {
       1: [
         [2, 2, 1, 1, 1],
